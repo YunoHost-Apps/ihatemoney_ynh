@@ -60,6 +60,7 @@ sudo yunohost app setting ihatemoney mysqlpwd -v $db_pwd
 sed -i "s/MY_SECRET_KEY/$secret_key/" ../conf/settings.py
 sed -i "s/MY_EMAIL/$mails_sender/" ../conf/settings.py
 sed -i "s/MY_MYSQL_PW/$db_pwd/" ../conf/settings.py
+sed -i "s@MY_PATH@$path@" ../conf/settings.py
 sudo install -o ihatemoney -g ihatemoney -m 640 \
      ../conf/settings.py /etc/ihatemoney/settings.py
 # The settings have to be stored here (on python path)
