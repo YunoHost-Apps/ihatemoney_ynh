@@ -4,10 +4,11 @@ from raven.contrib.flask import Sentry
 
 from web import main, db, mail
 from api import api
-
+from utils import ReverseProxied
 
 app = Flask(__name__)
 app.config.from_object("default_settings")
+app.wsgi_app = ReverseProxied(app.wsgi_app, app.config['APPLICATION_ROOT'])
 
 app.register_blueprint(main)
 app.register_blueprint(api)

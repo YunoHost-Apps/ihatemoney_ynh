@@ -27,7 +27,7 @@ the following content::
     DEBUG = True
     SQLACHEMY_ECHO = DEBUG
 
-You can also set the `TESTING` flag to `True` so no mails are sent 
+You can also set the `TESTING` flag to `True` so no mails are sent
 (and no exception is raised) while you're on development mode.
 
 Deploy it
@@ -48,7 +48,12 @@ To deploy it, I'm using gunicorn and supervisord::
 Don't forget to set the right permission for your files !
 
 Also, create a `settings.py` file with the appropriate values if you need to
-use a different database for instance.
+use a different database for instance. You can also set `APPLICATION_ROOT` if
+you want to prefix your URLs to serve ihatemonney in the *folder* of a domain,
+e.g:
+
+    APPLICATION_ROOT='/budget'
+
 
 How about the REST API?
 =======================
@@ -66,7 +71,7 @@ As a developer
 --------------
 
 The best way to contribute code is to write it and to make a pull request on
-github. Please, think about updating and running the tests before asking for 
+github. Please, think about updating and running the tests before asking for
 a pull request as it will help us to maintain the code clean and running.
 
 To do so::
