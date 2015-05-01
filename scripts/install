@@ -1,0 +1,76 @@
+#!/bin/bash
+set -e
+# Constants
+
+# Retrieve arguments
+domain=$1
+path=$2
+
+# Constant arguments
+db_user=ihatemoney
+secret_key=`openssl rand -base64 32`
+mails_sender="no-reply@${domain}"
+
+sudo yunohost app checkurl $domain$path -a ihatemoney
+if [[ ! $? -eq 0 ]]; then
+  exit 1
+fi
+
+# Remove trailing "/" for next commands
+path=${path%/}
+
+# Install debian packages dependencies
+sudo apt-get install -y -qq python-virtualenv supervisor
+
+# Create the dedicated user
+sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/
+
+# Prepare venv
+sudo virtualenv /opt/yunohost/ihatemoney/venv
+sudo /opt/yunohost/ihatemoney/venv/bin/pip install -r ../sources/budget/requirements.txt
+sudo /opt/yunohost/ihatemoney/venv/bin/pip install gunicorn>=19.3.0
+
+
+# Install source
+sudo cp -r ../sources/ /opt/yunohost/ihatemoney/src/
+sudo find /opt/yunohost/ihatemoney/src/ -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
+sudo find /opt/yunohost/ihatemoney/src/ -type d | while read LINE; do sudo chmod 750 "$LINE" ; done
+sudo chown -R ihatemoney:ihatemoney /opt/yunohost/ihatemoney/src
+
+
+# Create various dirs
+sudo install -o ihatemoney -g ihatemoney -m 755 \
+     -d /var/log/ihatemoney /etc/ihatemoney /var/run/ihatemoney/
+
+# Configure supervisor
+sudo install -o root -g root -m 644 \
+     ../conf/supervisord.conf /etc/supervisor/conf.d/ihatemoney.conf
+sudo service supervisor restart
+sudo yunohost service add supervisor
+
+# Configure gunicorn
+sudo install -o ihatemoney -g ihatemoney -m 644 \
+     ../conf/gunicorn.conf.py /etc/ihatemoney/gunicorn.conf.py
+
+# Configure database
+db_pwd=`sudo yunohost app initdb $db_user`
+sudo yunohost app setting ihatemoney mysqlpwd -v $db_pwd
+
+# Configure ihatemoney
+sed -i "s/MY_SECRET_KEY/$secret_key/" ../conf/settings.py
+sed -i "s/MY_EMAIL/$mails_sender/" ../conf/settings.py
+sed -i "s/MY_MYSQL_PW/$db_pwd/" ../conf/settings.py
+sudo install -o ihatemoney -g ihatemoney -m 640 \
+     ../conf/settings.py /etc/ihatemoney/settings.py
+# The settings have to be stored here (on python path)
+sudo ln -s /etc/ihatemoney/settings.py /opt/yunohost/ihatemoney/src/budget/settings.py
+
+# Reconfigure sso
+sudo yunohost app ssowatconf
+
+# Configure Nginx and reload
+sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
+sudo install -o root -g root -m644 \
+     ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/ihatemoney.conf
+sudo service nginx reload
+echo $?

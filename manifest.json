@@ -1,0 +1,36 @@
+{
+    "name": "I Hate Money",
+    "id": "ihatemoney",
+    "description": {
+        "en": "A simple shared budget manager web application",
+        "fr": "Une application web de comptes partagés à plusieurs"
+    },
+    "licence": "BSD custom beerware",
+    "developer": {
+        "name": "Jocelyn Delalande",
+        "email": "jocelyn@crapouillou.net",
+        "url": "http://jocelyn.delalande.fr"
+    },
+    "multi_instance": "false",
+    "arguments": {
+        "install" : [
+            {
+                "name": "domain",
+                "ask": {
+                    "en": "Choose a domain for ihatemoney",
+                    "fr": "Choisir un domaine pour ihatemoney"
+                },
+                "example": "example.com"
+            },
+            {
+                "name": "path",
+                "ask": {
+                    "en": "Choose a path for ihatemoney",
+                    "fr": "Choisir un chemin pour ihatemoney"
+                },
+                "example": "/example",
+                "default": "/ihatemoney"
+            }
+        ]
+    }
+}
