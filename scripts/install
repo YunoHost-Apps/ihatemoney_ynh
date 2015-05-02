@@ -19,6 +19,9 @@ fi
 # Remove trailing "/" for next commands
 path=${path%/}
 
+# Configure domain
+sudo yunohost app setting ihatemoney domain -v $domain
+
 # Install debian packages dependencies
 sudo apt-get install -y -qq python-dev python-virtualenv supervisor
 
