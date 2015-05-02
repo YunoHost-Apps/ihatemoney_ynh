@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+# Upgrade code
+sudo cp -r ../sources/ /opt/yunohost/ihatemoney/src/
+sudo find /opt/yunohost/ihatemoney/src/ -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
+sudo find /opt/yunohost/ihatemoney/src/ -type d | while read LINE; do sudo chmod 755 "$LINE" ; done
+sudo chown -R ihatemoney:ihatemoney /opt/yunohost/ihatemoney/src
+sudo chown -R www-data:www-data /opt/yunohost/ihatemoney/src/budget/static
+
+# Settings are not very likely to change, and that script may be
+# adapted to handle it in case.
+
+# Restart backend
+sudo supervisorctl restart budget
