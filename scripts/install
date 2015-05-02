@@ -33,9 +33,9 @@ sudo /opt/yunohost/ihatemoney/venv/bin/pip install gunicorn>=19.3.0 MySQL-python
 # Install source
 sudo cp -r ../sources/ /opt/yunohost/ihatemoney/src/
 sudo find /opt/yunohost/ihatemoney/src/ -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
-sudo find /opt/yunohost/ihatemoney/src/ -type d | while read LINE; do sudo chmod 750 "$LINE" ; done
+sudo find /opt/yunohost/ihatemoney/src/ -type d | while read LINE; do sudo chmod 755 "$LINE" ; done
 sudo chown -R ihatemoney:ihatemoney /opt/yunohost/ihatemoney/src
-
+sudo chown -R www-data:www-data /opt/yunohost/ihatemoney/src/budget/static
 
 # Create various dirs
 sudo install -o ihatemoney -g ihatemoney -m 755 \
