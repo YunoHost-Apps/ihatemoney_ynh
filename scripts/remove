@@ -1,0 +1,31 @@
+#!/bin/bash
+set -e
+
+# supervisord and other Debian dependencies remain installed
+# there is no way to know if they are used by other programs
+
+# Retrieve arguments
+domain=$(sudo yunohost app setting ihatemoney domain)
+db_user=ihatemoney
+db_name=ihatemoney
+root_pwd=$(sudo cat /etc/yunohost/mysql)
+
+# Drop database
+mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user@localhost ;"
+
+# Remove src
+sudo rm -rf /opt/yunohost/ihatemoney/
+
+# Remove settings
+sudo rm -rf /etc/ihatemoney
+sudo rm /etc/supervisor/conf.d/ihatemoney.conf
+sudo rm /etc/nginx/conf.d/$domain.d/ihatemoney.conf
+
+# Restart services
+sudo supervisorctl stop budget
+sudo service supervisor force-reload
+sudo service nginx reload
+sudo yunohost app ssowatconf
+
+# Delete user
+sudo userdel ihatemoney
