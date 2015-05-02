@@ -30,6 +30,15 @@
                 },
                 "example": "/example",
                 "default": "/ihatemoney"
+            },
+            {
+                "name": "is_public",
+                "ask": {
+                    "en": "Is it a public website ? (even if service is public, each project is protected by a password)",
+                    "fr": "Le service est-il public ? (même dans ce cas, chaque projet est protégé par un mot de passe)"
+                },
+                "choices": ["Yes", "No"],
+                "default": "Yes"
             }
         ]
     }
