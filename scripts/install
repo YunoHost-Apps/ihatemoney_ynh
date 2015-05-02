@@ -20,7 +20,7 @@ fi
 path=${path%/}
 
 # Install debian packages dependencies
-sudo apt-get install -y -qq python-virtualenv supervisor
+sudo apt-get install -y -qq python-dev python-virtualenv supervisor
 
 # Create the dedicated user
 sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/
@@ -28,8 +28,7 @@ sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/
 # Prepare venv
 sudo virtualenv /opt/yunohost/ihatemoney/venv
 sudo /opt/yunohost/ihatemoney/venv/bin/pip install -r ../sources/budget/requirements.txt
-sudo /opt/yunohost/ihatemoney/venv/bin/pip install gunicorn>=19.3.0
-
+sudo /opt/yunohost/ihatemoney/venv/bin/pip install gunicorn>=19.3.0 MySQL-python
 
 # Install source
 sudo cp -r ../sources/ /opt/yunohost/ihatemoney/src/
