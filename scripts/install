@@ -26,8 +26,7 @@ sudo yunohost app setting $app domain -v $domain
 sudo yunohost app setting $app is_public -v "$is_public"
 
 # Install debian packages dependencies
-sudo apt-get install -y -qq python-dev python-virtualenv supervisor
-
+sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
 # Create the dedicated user
 sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/
 
