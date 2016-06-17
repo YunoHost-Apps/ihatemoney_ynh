@@ -88,7 +88,7 @@ sudo ln -s /etc/ihatemoney/settings.py /opt/yunohost/ihatemoney/src/budget/setti
 
 
 # If app is public, add url to SSOWat conf as skipped_uris
-if [ "$is_public" = "Yes" ];
+if [[ "$is_public" -ne 0 ]];
 then
     sudo yunohost app setting $app unprotected_uris -v "/"
 fi

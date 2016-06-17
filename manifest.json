@@ -1,21 +1,28 @@
 {
     "name": "I Hate Money",
     "id": "ihatemoney",
+    "packaging_format": 1,
     "description": {
         "en": "A simple shared budget manager web application",
         "fr": "Une application web de comptes partagés à plusieurs"
     },
-    "licence": "BSD custom beerware",
-    "developer": {
+    "url": "http://ihatemoney.org/",
+    "license": "free",
+    "maintainer": {
         "name": "Jocelyn Delalande",
         "email": "jocelyn@crapouillou.net",
         "url": "http://jocelyn.delalande.fr"
     },
-    "multi_instance": "false",
+    "requirements": {
+        "yunohost": ">= 2.4"
+    },
+    "multi_instance": false,
+    "services": ["nginx", "mysql", "postfix"],
     "arguments": {
         "install" : [
             {
                 "name": "domain",
+                "type": "domain",
                 "ask": {
                     "en": "Choose a domain for ihatemoney",
                     "fr": "Choisir un domaine pour ihatemoney"
@@ -24,6 +31,7 @@
             },
             {
                 "name": "path",
+                "type": "path",
                 "ask": {
                     "en": "Choose a path for ihatemoney",
                     "fr": "Choisir un chemin pour ihatemoney"
@@ -33,12 +41,12 @@
             },
             {
                 "name": "is_public",
+                "type": "boolean",
                 "ask": {
                     "en": "Is it a public website ? (even if service is public, each project is protected by a password)",
                     "fr": "Le service est-il public ? (même dans ce cas, chaque projet est protégé par un mot de passe)"
                 },
-                "choices": ["Yes", "No"],
-                "default": "Yes"
+                "default": true
             }
         ]
     }

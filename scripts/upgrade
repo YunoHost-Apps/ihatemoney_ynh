@@ -1,5 +1,23 @@
 #!/bin/bash
 set -e
+app=$YNH_APP_INSTANCE_NAME
+
+# Source YunoHost helpers
+. /usr/share/yunohost/helpers
+
+# Optionaly upgrade arg to typed boolean form
+
+is_public=$(ynh_app_setting_get "$app" is_public)
+if [[ "$is_public" = "" ]];
+then
+    if [ $public_site = "No" ];
+    then
+        is_public=0
+    else
+        is_public=1
+    fi
+    ynh_app_setting_set "$app" is_public "$is_public"
+fi
 
 # Upgrade code
 sudo cp -r ../sources/ /opt/yunohost/ihatemoney/src/
