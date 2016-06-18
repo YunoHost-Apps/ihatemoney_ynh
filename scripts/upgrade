@@ -2,29 +2,40 @@
 set -e
 app=$YNH_APP_INSTANCE_NAME
 
+
+# Installation paths
+INSTALL_DIR=/opt/yunohost/ihatemoney
+PIP=${INSTALL_DIR}/venv/bin/pip
+REQUIREMENTS=${INSTALL_DIR}/src/budget/requirements.txt
+
 # Source YunoHost helpers
 . /usr/share/yunohost/helpers
 
 # Optionaly upgrade arg to typed boolean form
 
 is_public=$(ynh_app_setting_get "$app" is_public)
-if [[ "$is_public" = "" ]];
+
+if [ $is_public = "No" ];
 then
-    if [ $public_site = "No" ];
-    then
-        is_public=0
-    else
-        is_public=1
-    fi
-    ynh_app_setting_set "$app" is_public "$is_public"
+    is_public=0
+else
+    is_public=1
 fi
 
+ynh_app_setting_set "$app" is_public "$is_public"
+
 # Upgrade code
-sudo cp -r ../sources/ /opt/yunohost/ihatemoney/src/
-sudo find /opt/yunohost/ihatemoney/src/ -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
-sudo find /opt/yunohost/ihatemoney/src/ -type d | while read LINE; do sudo chmod 755 "$LINE" ; done
+sudo rsync -a --delete-after ../sources/ ${INSTALL_DIR}/src/
+sudo find ${INSTALL_DIR}/src/ -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
+sudo find ${INSTALL_DIR}/src/ -type d | while read LINE; do sudo chmod 755 "$LINE" ; done
 sudo chown -R ihatemoney:ihatemoney /opt/yunohost/ihatemoney/src
 sudo chown -R www-data:www-data /opt/yunohost/ihatemoney/src/budget/static
+
+# Re-create settings symlink
+sudo ln -s /etc/ihatemoney/settings.py /opt/yunohost/ihatemoney/src/budget/settings.py
+
+# Upgrade dependencies
+sudo ${PIP} install -r ${REQUIREMENTS}
 
 # Settings are not very likely to change, and that script may be
 # adapted to handle it in case.
