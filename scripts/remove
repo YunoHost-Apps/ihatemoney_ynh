@@ -1,13 +1,17 @@
 #!/bin/bash
 set -u
 
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+
 # supervisord and other Debian dependencies remain installed
 # there is no way to know if they are used by other programs
 
 # Retrieve arguments
-domain=$(sudo yunohost app setting ihatemoney domain)
-db_user=ihatemoney
-db_name=ihatemoney
+app=ihatemoney
+domain=$(ynh_app_setting_get $app domain)
+db_user=$app
+db_name=$app
 root_pwd=$(sudo cat /etc/yunohost/mysql)
 
 # Drop database

@@ -1,11 +1,19 @@
 #!/bin/bash
 set -eu
 
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+
 # Retrieve arguments
-domain=$1
-path=$2
-is_public=$3
+domain=$YNH_APP_ARG_DOMAIN
+path=$YNH_APP_ARG_PATH
+is_public=$YNH_APP_ARG_IS_PUBLIC
 app=ihatemoney
+
+# Database settings
+db_pwd=$(ynh_string_random)
+db_name=$app
+db_user=$app
 
 # Constant arguments
 db_user=ihatemoney
@@ -14,15 +22,15 @@ mails_sender="no-reply@${domain}"
 
 sudo yunohost app checkurl $domain$path -a ihatemoney
 if [[ ! $? -eq 0 ]]; then
-  exit 1
+  ynh_die "${domain}${path} is not available"
 fi
 
 # Remove trailing "/" for next commands
 path=${path%/}
 
 # Configure database
-db_pwd=`sudo yunohost app initdb $db_user`
-sudo yunohost app setting $app mysqlpwd -v $db_pwd
+ynh_mysql_create_db "$db_name" "$db_user" "$db_pwd"
+ynh_app_setting_set $app mysqlpwd $db_pwd
 
 # Delete db, user dirs and conf if exit with an error
 # inspired from https://github.com/Kloadut/owncloud_ynh/blob/master/scripts/install#L37
@@ -31,19 +39,19 @@ function exit_properly
 {
     set +e
     root_pwd=$(sudo cat /etc/yunohost/mysql)
-    mysql -u root -p$root_pwd -e "DROP DATABASE ihatemoney ; DROP USER $db_user ;"
+    mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user ;"
     sudo userdel ihatemoney
     sudo rm -Rf /opt/yunohost/ihatemoney
     sudo rm -Rf /etc/ihatemoney
     sudo rm /etc/nginx/conf.d/$domain.d/ihatemoney.conf
     sudo rm /etc/supervisor/conf.d/ihatemoney.conf
-    exit 1
+    ynh_die "Install script failed, aborted and rolled back the installation"
 }
 trap exit_properly ERR
 
 # Save app settings
-sudo yunohost app setting $app domain -v $domain
-sudo yunohost app setting $app is_public -v "$is_public"
+ynh_app_setting_set $app domain $domain
+ynh_app_setting_set $app is_public "$is_public"
 
 # Install debian packages dependencies
 sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
@@ -89,7 +97,7 @@ sudo ln -s /etc/ihatemoney/settings.py /opt/yunohost/ihatemoney/src/budget/setti
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ "$is_public" -ne 0 ]];
 then
-    sudo yunohost app setting $app unprotected_uris -v "/"
+    ynh_app_setting_set $app unprotected_uris "/"
 fi
 
 # Configure Nginx and reload
