@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from datetime import datetime
-from flask.ext.sqlalchemy import SQLAlchemy, BaseQuery
+from flask_sqlalchemy import SQLAlchemy, BaseQuery
 from flask import g
 
 from sqlalchemy import orm
@@ -37,7 +37,7 @@ class Project(db.Model):
         # for each person
         for person in self.members:
             # get the list of bills he has to pay
-            bills = Bill.query.filter(Bill.owers.contains(person))
+            bills = Bill.query.options(orm.subqueryload(Bill.owers)).filter(Bill.owers.contains(person))
             for bill in bills.all():
                 if person != bill.payer:
                     share = bill.pay_each() * person.weight
@@ -54,16 +54,28 @@ class Project(db.Model):
     def uses_weights(self):
         return len([i for i in self.members if i.weight != 1]) > 0
 
-    def get_transactions_to_settle_bill(self):
+    def get_transactions_to_settle_bill(self, pretty_output=False):
         """Return a list of transactions that could be made to settle the bill"""
+        def prettify(transactions, pretty_output):
+            """ Return pretty transactions
+            """
+            if not pretty_output:
+                return transactions
+            pretty_transactions = []
+            for transaction in transactions:
+                pretty_transactions.append({'ower': transaction['ower'].name,
+                                            'receiver': transaction['receiver'].name,
+                                            'amount': round(transaction['amount'], 2)})
+            return pretty_transactions
+
         #cache value for better performance
         balance = self.balance
         credits, debts, transactions = [],[],[]
         # Create lists of credits and debts
         for person in self.members:
-            if balance[person.id] > 0:
+            if round(balance[person.id], 2) > 0:
                 credits.append({"person": person, "balance": balance[person.id]})
-            elif balance[person.id] < 0:
+            elif round(balance[person.id], 2) < 0:
                 debts.append({"person": person, "balance": -balance[person.id]})
         # Try and find exact matches
         for credit in credits:
@@ -83,7 +95,8 @@ class Project(db.Model):
                 transactions.append({"ower": debts[0]["person"], "receiver": credits[0]["person"], "amount": credits[0]["balance"]})
                 debts[0]["balance"] = debts[0]["balance"] - credits[0]["balance"]
                 del credits[0]
-        return transactions
+
+        return prettify(transactions, pretty_output)
 
     def exactmatch(self, credit, debts):
         """Recursively try and find subsets of 'debts' whose sum is equal to credit"""
@@ -111,7 +124,25 @@ class Project(db.Model):
             .filter(Bill.payer_id == Person.id)\
             .filter(Person.project_id == Project.id)\
             .filter(Project.id == self.id)\
-            .order_by(Bill.date.desc())
+            .order_by(Bill.date.desc())\
+            .order_by(Bill.id.desc())
+
+    def get_pretty_bills(self, export_format="json"):
+        """Return a list of project's bills with pretty formatting"""
+        bills = self.get_bills()
+        pretty_bills = []
+        for bill in bills:
+            if export_format == "json":
+                owers = [ower.name for ower in bill.owers]
+            else:
+                owers = ', '.join([ower.name for ower in bill.owers])
+            pretty_bills.append({"what": bill.what,
+                                 "amount": round(bill.amount, 2),
+                                 "date": str(bill.date),
+                                 "payer_name": Person.query.get(bill.payer_id).name,
+                                 "payer_weight": Person.query.get(bill.payer_id).weight,
+                                 "owers": owers})
+        return pretty_bills
 
     def remove_member(self, member_id):
         """Remove a member from the project.

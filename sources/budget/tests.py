@@ -398,12 +398,10 @@ class BudgetTestCase(TestCase):
             'what': u'fromage à raclette',
             'payer': members_ids[0],
             'payed_for': members_ids,
-            # bill with a negative value should be converted to a positive
-            # value
             'amount': '-25'
         })
         bill = models.Bill.query.filter(models.Bill.date == '2011-08-12')[0]
-        self.assertEqual(bill.amount, 25)
+        self.assertEqual(bill.amount, -25)
 
         #add a bill with a comma
         self.app.post("/raclette/add", data={
@@ -500,7 +498,10 @@ class BudgetTestCase(TestCase):
         result[models.Project.query.get("raclette").members[0].id] = 8.12
         result[models.Project.query.get("raclette").members[1].id] = 0.0
         result[models.Project.query.get("raclette").members[2].id] = -8.12
-        self.assertDictEqual(balance, result)
+        # Since we're using floating point to store currency, we can have some rounding issues that prevent test from working.
+        # However, we should obtain the same values as the theorical ones if we round to 2 decimals, like in the UI.
+        for key, value in balance.iteritems():
+            self.assertEqual(round(value, 2), result[key])
 
     def test_edit_project(self):
         # A project should be editable
@@ -582,6 +583,156 @@ class BudgetTestCase(TestCase):
             self.assertEqual(a, balance[m.id])
         return
 
+    def test_settle_zero(self):
+        self.post_project("raclette")
+
+        # add members
+        self.app.post("/raclette/members/add", data={'name': 'alexis'})
+        self.app.post("/raclette/members/add", data={'name': 'fred'})
+        self.app.post("/raclette/members/add", data={'name': 'tata'})
+
+        # create bills
+        self.app.post("/raclette/add", data={
+            'date': '2016-12-31',
+            'what': u'fromage à raclette',
+            'payer': 1,
+            'payed_for': [1, 2, 3],
+            'amount': '10.0',
+        })
+
+        self.app.post("/raclette/add", data={
+            'date': '2016-12-31',
+            'what': u'red wine',
+            'payer': 2,
+            'payed_for': [1, 3],
+            'amount': '20',
+        })
+
+        self.app.post("/raclette/add", data={
+            'date': '2017-01-01',
+            'what': u'refund',
+            'payer': 3,
+            'payed_for': [2],
+            'amount': '13.33',
+        })
+        project  = models.Project.query.get('raclette')
+        transactions = project.get_transactions_to_settle_bill()
+        members = defaultdict(int)
+        # There should not be any zero-amount transfer after rounding
+        for t in transactions:
+            rounded_amount = round(t['amount'], 2)
+            self.assertNotEqual(0.0, rounded_amount,
+                                msg='%f is equal to zero after rounding' % t['amount'])
+
+    def test_export(self):
+        self.post_project("raclette")
+
+        # add members
+        self.app.post("/raclette/members/add", data={'name': 'alexis', 'weight': 2})
+        self.app.post("/raclette/members/add", data={'name': 'fred'})
+        self.app.post("/raclette/members/add", data={'name': 'tata'})
+        self.app.post("/raclette/members/add", data={'name': 'pépé'})
+
+        # create bills
+        self.app.post("/raclette/add", data={
+            'date': '2016-12-31',
+            'what': u'fromage à raclette',
+            'payer': 1,
+            'payed_for': [1, 2, 3, 4],
+            'amount': '10.0',
+        })
+
+        self.app.post("/raclette/add", data={
+            'date': '2016-12-31',
+            'what': u'red wine',
+            'payer': 2,
+            'payed_for': [1, 3],
+            'amount': '200',
+        })
+
+        self.app.post("/raclette/add", data={
+            'date': '2017-01-01',
+            'what': u'refund',
+            'payer': 3,
+            'payed_for': [2],
+            'amount': '13.33',
+        })
+
+        # generate json export of bills
+        resp = self.app.post("/raclette/edit", data={
+            'export_format': 'json',
+            'export_type': 'bills'
+        })
+        expected = [{u'date': u'2017-01-01', u'what': u'refund',
+                     u'amount': 13.33, u'payer_name': u'tata', u'payer_weight': 1.0, u'owers': [u'fred']},
+                    {u'date': u'2016-12-31', u'what': u'red wine',
+                     u'amount': 200.0, u'payer_name': u'fred', u'payer_weight': 1.0, u'owers': [u'alexis', u'tata']},
+                    {u'date': u'2016-12-31', u'what': u'fromage \xe0 raclette',
+                     u'amount': 10.0, u'payer_name': u'alexis', u'payer_weight': 2.0, u'owers': [u'alexis', u'fred', u'tata', u'p\xe9p\xe9']}]
+        self.assertEqual(json.loads(resp.data), expected)
+
+        # generate csv export of bills
+        resp = self.app.post("/raclette/edit", data={
+            'export_format': 'csv',
+            'export_type': 'bills'
+        })
+        expected = ["date,what,amount,payer_name,payer_weight,owers",
+                    "2017-01-01,refund,13.33,tata,1.0,fred",
+                    "2016-12-31,red wine,200.0,fred,1.0,\"alexis, tata\"",
+                    "2016-12-31,fromage à raclette,10.0,alexis,2.0,\"alexis, fred, tata, pépé\""]
+        received_lines = resp.data.split("\n")
+
+        for i, line in enumerate(expected):
+            self.assertEqual(
+                set(line.split(",")),
+                set(received_lines[i].strip("\r").split(","))
+            )
+
+        # generate json export of transactions
+        resp = self.app.post("/raclette/edit", data={
+            'export_format': 'json',
+            'export_type': 'transactions'
+        })
+        expected = [{u"amount": 127.33, u"receiver": u"fred", u"ower": u"alexis"},
+                    {u"amount": 55.34, u"receiver": u"fred", u"ower": u"tata"},
+                    {u"amount": 2.00, u"receiver": u"fred", u"ower": u"p\xe9p\xe9"}]
+        self.assertEqual(json.loads(resp.data), expected)
+
+        # generate csv export of transactions
+        resp = self.app.post("/raclette/edit", data={
+            'export_format': 'csv',
+            'export_type': 'transactions'
+        })
+
+        expected = ["amount,receiver,ower",
+                    "127.33,fred,alexis",
+                    "55.34,fred,tata",
+                    "2.0,fred,pépé"]
+        received_lines = resp.data.split("\n")
+
+        for i, line in enumerate(expected):
+            self.assertEqual(
+                set(line.split(",")),
+                set(received_lines[i].strip("\r").split(","))
+            )
+
+        # wrong export_format should return a 200 and export form
+        resp = self.app.post("/raclette/edit", data={
+            'export_format': 'wrong_export_format',
+            'export_type': 'transactions'
+        })
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('id="export_format" name="export_format"', resp.data)
+
+        # wrong export_type should return a 200 and export form
+        resp = self.app.post("/raclette/edit", data={
+            'export_format': 'json',
+            'export_type': 'wrong_export_type'
+        })
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('id="export_format" name="export_format"', resp.data)
 
 
 class APITestCase(TestCase):
@@ -870,6 +1021,18 @@ class APITestCase(TestCase):
                 headers=self.get_auth("raclette"))
         self.assertStatus(404, req)
 
+    def test_username_xss(self):
+        # create a project
+        #self.api_create("raclette")
+        self.post_project("raclette")
+        self.login("raclette")
+
+        # add members
+        self.api_add_member("raclette", "<script>")
+
+        result = self.app.get('/raclette/')
+        self.assertNotIn("<script>", result.data)
+
     def test_weighted_bills(self):
         # create a project
         self.api_create("raclette")
@@ -936,6 +1099,7 @@ class ServerTestCase(APITestCase):
         super(ServerTestCase, self).setUp()
 
     def test_unprefixed(self):
+        run.app.config['APPLICATION_ROOT'] = '/'
         req = self.app.get("/foo/")
         self.assertStatus(303, req)
 

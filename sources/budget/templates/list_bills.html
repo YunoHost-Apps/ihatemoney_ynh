@@ -1,16 +1,11 @@
-{% extends "layout.html" %}
+{% extends "sidebar_table_layout.html" %}
 
 {% block title %} - {{ g.project.name }}{% endblock %}
 {% block head %}
     <script src="{{ url_for("static", filename="js/bootstrap-datepicker.js") }}"></script>
+    <script src="{{ url_for("static", filename="js/locales/bootstrap-datepicker.fr.min.js") }}" charset="utf-8"></script>
 {% endblock %}
 {% block js %}
-
-    $(window).resize(function() {
-        $("#sidebar").height( window.innerHeight-50 );
-        $("#table_overflow").height( $("#sidebar").height()-120 );
-    });
-
     {% if add_bill %} $('#new-bill').click(); {% endif %}
 
     // Hide all members actions
@@ -56,16 +51,14 @@
 {% endblock %}
 
 {% block sidebar %}
-<div id="sidebar" class="sidebar">
-
-    <form id="add-member-form" action="{{ url_for(".add_member") }}" method="post" class="form-inline input-append">
+    <form id="add-member-form" action="{{ url_for(".add_member") }}" method="post" class="form-inline">
         {{ forms.add_member(member_form) }}
     </form>
 
     <div id="table_overflow">
     <table class="balance table">
     {% set balance = g.project.balance %}
-    {% for member in g.project.members | sort(attribute='name') if member.activated or balance[member.id] != 0 %}
+    {% for member in g.project.members | sort(attribute='name') if member.activated or balance[member.id]|round(2) != 0 %}
     <tr id="bal-member-{{ member.id }}" action={% if member.activated %}delete{% else %}reactivate{% endif %}>
         <td class="balance-name">{{ member.name }}
             <span class="light{% if not g.project.uses_weights %} extra-info{% endif %}">(x{{ member.weight|minimal_round(1) }})</span>
@@ -82,37 +75,39 @@
             <form class="action reactivate" action="{{ url_for(".reactivate", member_id=member.id) }}" method="POST">
                 <button type="submit">{{ _("reactivate") }}</button></form></td>
         {% endif %}
-        <td class="balance-value {% if balance[member.id] > 0 %}positive{% elif balance[member.id] < 0 %}negative{% endif %}">
-            {% if balance[member.id] > 0 %}+{% endif %}{{ "%.2f" | format(balance[member.id]) }}
+        <td class="balance-value {% if balance[member.id]|round(2) > 0 %}positive{% elif balance[member.id]|round(2) < 0 %}negative{% endif %}">
+            {% if balance[member.id]|round(2) > 0 %}+{% endif %}{{ "%.2f" | format(balance[member.id]) }}
         </td>
     </tr>
     {% endfor %}
     </table>
     </div>
-
-</div>
 {% endblock %}
 
 {% block content %}
 <div class="identifier">{{ _("The project identifier is") }} <a href="{{ url_for(".list_bills") }}">{{ g.project.id }}</a>, {{ _("remember it!") }}</div>
 <a id="new-bill" href="{{ url_for(".add_bill") }}" class="btn btn-primary" data-toggle="modal" data-target="#bill-form">{{ _("Add a new bill") }}</a>
 
-    <div id="bill-form" class="modal hide">
-        <div class="modal-header">
-            <a href="#" class="close" data-dismiss="modal">&times;</a>
-            <h3>{{ _('Add a bill') }}</h3>
+    <div id="bill-form" class="modal fade show" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">{{ _('Add a bill') }}</h3>
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                </div>
+                <form action="{{ url_for(".add_bill") }}" method="post" class="modal-body container">
+                {{ forms.add_bill(bill_form, title=False) }}
+                </form>
+            </div>
         </div>
-        <form action="{{ url_for(".add_bill") }}" method="post" class="modal-body form-horizontal">
-            {{ forms.add_bill(bill_form, title=False) }}
-        </form>
     </div>
 
     {% if bills.count() > 0 %}
-    <table id="bill_table" class="table table-striped">
+    <table id="bill_table" class="col table table-striped table-hover">
         <thead><tr><th>{{ _("When?") }}</th><th>{{ _("Who paid?") }}</th><th>{{ _("For what?") }}</th><th>{{ _("For whom?") }}</th><th>{{ _("How much?") }}</th><th>{{ _("Actions") }}</th></tr></thead>
     <tbody>
     {% for bill in bills %}
-    <tr class="{{ loop.cycle("odd", "even") }}" owers={{bill.owers|join(',','id')}} payer={{bill.payer.id}}>
+    <tr owers="{{bill.owers|join(',','id')}}" payer="{{bill.payer.id}}">
             <td>{{ bill.date }}</td>
             <td>{{ bill.payer }}</td>
             <td>{{ bill.what }}</td>

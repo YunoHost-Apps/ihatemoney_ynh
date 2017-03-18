@@ -1,7 +1,7 @@
-from flask.ext.wtf import DateField, DecimalField, Email, Form, PasswordField, \
+from flask_wtf import DateField, DecimalField, Email, Form, PasswordField, \
     Required, SelectField, SelectMultipleField, SubmitField, TextAreaField, \
     TextField, ValidationError
-from flask.ext.babel import lazy_gettext as _
+from flask_babel import lazy_gettext as _
 from flask import request
 
 from wtforms.widgets import html_params
@@ -9,28 +9,6 @@ from models import Project, Person
 from datetime import datetime
 from jinja2 import Markup
 from utils import slugify
-
-
-def select_multi_checkbox(field, ul_class='', **kwargs):
-    kwargs.setdefault('type', 'checkbox')
-    field_id = kwargs.pop('id', field.id)
-    html = [u'<ul %s>' % html_params(id=field_id, class_="inputs-list")]
-
-    choice_id = u'toggleField'
-    js_function = u'toggle();'
-    options = dict(kwargs, id=choice_id, onclick=js_function)
-    html.append(u'<p><a id="selectall" onclick="selectall()">%s</a> | <a id="selectnone" onclick="selectnone()">%s</a></p>'% (_("Select all"), _("Select none")))
-
-    for value, label, checked in field.iter_choices():
-        choice_id = u'%s-%s' % (field_id, value)
-        options = dict(kwargs, name=field.name, value=value, id=choice_id)
-        if checked:
-            options['checked'] = 'checked'
-        html.append(u'<p><label for="%s">%s<span>%s</span></label></p>'
-            % (choice_id, '<input %s /> ' % html_params(**options), label))
-    html.append(u'</ul>')
-    return u''.join(html)
-
 
 def get_billform_for(project, set_default=True, **kwargs):
     """Return an instance of BillForm configured for a particular project.
@@ -118,7 +96,7 @@ class BillForm(Form):
     payer = SelectField(_("Payer"), validators=[Required()], coerce=int)
     amount = CommaDecimalField(_("Amount paid"), validators=[Required()])
     payed_for = SelectMultipleField(_("For whom?"),
-            validators=[Required()], widget=select_multi_checkbox, coerce=int)
+            validators=[Required()], coerce=int)
     submit = SubmitField(_("Submit"))
     submit2 = SubmitField(_("Submit and add a new one"))
 
@@ -143,9 +121,7 @@ class BillForm(Form):
         self.payed_for.data = self.payed_for.default
 
     def validate_amount(self, field):
-        if field.data < 0:
-            field.data = abs(field.data)
-        elif field.data == 0:
+        if field.data == 0:
             raise ValidationError(_("Bills can't be null"))
 
 
@@ -198,3 +174,16 @@ class CreateArchiveForm(Form):
     name = TextField(_("Name for this archive (optional)"), validators=[])
     start_date = DateField(_("Start date"), validators=[Required()])
     end_date = DateField(_("End date"), validators=[Required()], default=datetime.now)
+
+
+class ExportForm(Form):
+    export_type = SelectField(_("What do you want to download ?"),
+                              validators=[Required()],
+                              coerce=str,
+                              choices=[("bills", _("bills")), ("transactions", _("transactions"))]
+                             )
+    export_format = SelectField(_("Export file format"),
+                                validators=[Required()],
+                                coerce=str,
+                                choices=[("csv", "csv"), ("json", "json")]
+                               )

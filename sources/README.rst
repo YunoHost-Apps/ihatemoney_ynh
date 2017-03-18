@@ -1,6 +1,10 @@
 Budget-manager
 ##############
 
+.. image:: https://travis-ci.org/spiral-project/ihatemoney.svg?branch=master
+   :target: https://travis-ci.org/spiral-project/ihatemoney
+   :alt: Travis CI Build Status
+
 This is a really tiny app to ease the shared houses budget management. Keep
 track of who bought what, when, and for who to then compute the balance of each
 person.
@@ -59,7 +63,7 @@ How about the REST API?
 =======================
 
 Yep, you're right, there is a REST API with this. Head to the `api
-documentation <http://readthedocs.org/docs/ihatemoney/en/latest/api.html>`_ to know more.
+documentation <https://ihatemoney.readthedocs.io/en/latest/api.html>`_ to know more.
 
 How to contribute
 =================
