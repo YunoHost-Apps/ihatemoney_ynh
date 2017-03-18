@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -u
 
 # supervisord and other Debian dependencies remain installed
 # there is no way to know if they are used by other programs
