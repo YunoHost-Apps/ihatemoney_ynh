@@ -3,13 +3,21 @@ set -eu
 app=$YNH_APP_INSTANCE_NAME
 
 
+# The main logic is to
+# - install in a src-new folder
+# - upgrade dependencies
+# - if everything OK, rename src-new to src
+
 # Installation paths
 INSTALL_DIR=/opt/yunohost/ihatemoney
 PIP=${INSTALL_DIR}/venv/bin/pip
-REQUIREMENTS=${INSTALL_DIR}/src/budget/requirements.txt
+NEW_REQUIREMENTS=${INSTALL_DIR}/src-new/requirements.txt
 
 # Source YunoHost helpers
 . /usr/share/yunohost/helpers
+
+# Source local utils
+source _common.sh
 
 # Optionaly upgrade arg to typed boolean form
 
@@ -25,17 +33,19 @@ fi
 ynh_app_setting_set "$app" is_public "$is_public"
 
 # Upgrade code
-sudo rsync -a --delete-after ../sources/ ${INSTALL_DIR}/src/
-sudo find ${INSTALL_DIR}/src/ -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
-sudo find ${INSTALL_DIR}/src/ -type d | while read LINE; do sudo chmod 755 "$LINE" ; done
-sudo chown -R ihatemoney:ihatemoney /opt/yunohost/ihatemoney/src
-sudo chown -R www-data:www-data /opt/yunohost/ihatemoney/src/budget/static
+fetch_and_extract ${INSTALL_DIR}/src-new/ ihatemoney
 
-# Re-create settings symlink
-sudo ln -s /etc/ihatemoney/settings.py /opt/yunohost/ihatemoney/src/budget/settings.py
+fix_permissions ${INSTALL_DIR}/src-new/
 
 # Upgrade dependencies
-sudo ${PIP} install -r ${REQUIREMENTS}
+sudo ${PIP} install -r ${NEW_REQUIREMENTS}
+
+# Everything went ok ? Let's keep this code.
+sudo rm -rf ${INSTALL_DIR}/src
+sudo mv ${INSTALL_DIR}/src-new ${INSTALL_DIR}/src
+
+# Re-create settings symlink
+sudo ln -s /etc/ihatemoney/settings.py ${INSTALL_DIR}/src/budget/settings.py
 
 # Settings are not very likely to change, and that script may be
 # adapted to handle it in case.

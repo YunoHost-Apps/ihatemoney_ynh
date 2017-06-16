@@ -4,6 +4,9 @@ set -eu
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
+# Source local utils
+source _common.sh
+
 # Retrieve arguments
 domain=$YNH_APP_ARG_DOMAIN
 path=$YNH_APP_ARG_PATH
@@ -56,19 +59,18 @@ ynh_app_setting_set $app is_public "$is_public"
 # Install debian packages dependencies
 sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
 # Create the dedicated user
-sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/
+sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home
+
+# Install source
+fetch_and_extract /opt/yunohost/ihatemoney/src/ ihatemoney
 
 # Prepare venv
 sudo virtualenv /opt/yunohost/ihatemoney/venv
-sudo /opt/yunohost/ihatemoney/venv/bin/pip install -r ../sources/budget/requirements.txt
+sudo /opt/yunohost/ihatemoney/venv/bin/pip install -r /opt/yunohost/ihatemoney/src/requirements.txt
 sudo /opt/yunohost/ihatemoney/venv/bin/pip install gunicorn>=19.3.0 MySQL-python
 
-# Install source
-sudo cp -r ../sources/ /opt/yunohost/ihatemoney/src/
-sudo find /opt/yunohost/ihatemoney/src/ -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
-sudo find /opt/yunohost/ihatemoney/src/ -type d | while read LINE; do sudo chmod 755 "$LINE" ; done
-sudo chown -R ihatemoney:ihatemoney /opt/yunohost/ihatemoney/src
-sudo chown -R www-data:www-data /opt/yunohost/ihatemoney/src/budget/static
+# Fix permissions
+fix_permissions /opt/yunohost/ihatemoney/src
 
 # Create various dirs
 sudo install -o ihatemoney -g ihatemoney -m 755 \
