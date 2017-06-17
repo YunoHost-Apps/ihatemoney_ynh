@@ -13,6 +13,8 @@ INSTALL_DIR=/opt/yunohost/ihatemoney
 PIP=${INSTALL_DIR}/venv/bin/pip
 NEW_REQUIREMENTS=${INSTALL_DIR}/src-new/requirements.txt
 
+domain=$(ynh_app_setting_get "$app" domain)
+
 # Source YunoHost helpers
 . /usr/share/yunohost/helpers
 
