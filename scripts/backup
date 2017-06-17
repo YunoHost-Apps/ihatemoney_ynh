@@ -1,0 +1,41 @@
+#!/bin/bash
+set -eu
+
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+
+# Get multi-instances specific variables
+app=$YNH_APP_INSTANCE_NAME
+
+# Set app specific variables
+dbname=$app
+dbuser=$app
+
+INSTALL_DIR=/opt/yunohost/ihatemoney
+
+# Retrieve app settings
+domain=$(ynh_app_setting_get "$app" domain)
+path=$(ynh_app_setting_get "$app" path)
+dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
+
+# Source local utils
+if [ ! -e _common.sh ]; then
+	# Fetch the local helpers files, because unavail to restore script
+	sudo cp ../settings/scripts/_common.sh ./_common.sh
+	sudo chmod a+rx _common.sh
+fi
+
+source _common.sh
+
+# Backup conf files
+mkdir ./conf
+ynh_backup "$nginx_conf_path" "conf/nginx.conf"
+ynh_backup "$gunicorn_conf_path" "conf/gunicorn.conf.py"
+ynh_backup "$supervisor_conf_path" "conf/supervisor.conf"
+ynh_backup "$ihatemoney_conf_path" "conf/settings.py"
+
+# Dump the database
+mysqldump -u "$dbuser" -p"$dbpass" --no-create-db "$dbname" > ./db.sql
+
+# Backup code and venv
+ynh_backup "$INSTALL_DIR" "install_dir"

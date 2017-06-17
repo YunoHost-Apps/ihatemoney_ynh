@@ -1,3 +1,14 @@
+### Constants
+
+nginx_conf_path="/etc/nginx/conf.d/${domain}.d/ihatemoney.conf"
+supervisor_conf_path="/etc/supervisor/conf.d/ihatemoney.conf"
+gunicorn_conf_path="/etc/ihatemoney/gunicorn.conf.py"
+ihatemoney_conf_path="/etc/ihatemoney/settings.py"
+INSTALL_DIR="/opt/yunohost/ihatemoney"
+
+
+### Functions
+
 fetch_and_extract() {
     local DESTDIR=$1
     local OWNER_USER=${2:-admin}

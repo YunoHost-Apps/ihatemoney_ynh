@@ -1,0 +1,76 @@
+#!/bin/bash
+set -eu
+
+# Source app helpers
+source /usr/share/yunohost/helpers
+
+# Get multi-instances specific variables
+app=$YNH_APP_INSTANCE_NAME
+
+# Set app specific variables
+dbname=$app
+dbuser=$app
+
+# Retrieve old app settings
+domain=$(ynh_app_setting_get "$app" domain)
+path=$(ynh_app_setting_get "$app" path)
+dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
+
+
+# Source local utils
+if [ ! -e _common.sh ]; then
+	# Fetch the local helpers files, because unavail to restore script
+	sudo cp ../settings/scripts/_common.sh ./_common.sh
+	sudo chmod a+rx _common.sh
+fi
+
+source _common.sh
+
+
+sudo yunohost app checkurl "${domain}${path}" -a "$app" \
+  || ynh_die "The path ${domain}${path} is not available for app installation."
+
+test -d $INSTALL_DIR && ynh_die \
+"The destination directory '$INSTALL_DIR' already exists.\
+ You should safely delete it before restoring this app."
+
+test -f $nginx_conf_path && ynh_die \
+"The NGINX configuration already exists at '${nginx_conf_path}'.
+ You should safely delete it before restoring this app."
+
+test -f $supervisor_conf_path && ynh_die \
+"The Supervisor configuration already exists at '${supervisor_conf_path}'.
+ You should safely delete it before restoring this app."
+
+test -f $gunicorn_conf_path && ynh_die \
+"The Gunicorn configuration already exists at '${gunicorn_conf_path}'.
+ You should safely delete it before restoring this app."
+
+# Create the dedicated user
+sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home
+
+# Restore the app files
+sudo cp -a ./install_dir/. "$INSTALL_DIR"
+fix_permissions ${INSTALL_DIR}/src
+
+# Create and restore the database
+ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
+ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./db.sql
+
+# Create various dirs
+sudo install -o ihatemoney -g ihatemoney -m 755 \
+     -d /var/log/ihatemoney /etc/ihatemoney
+
+# Restore settings
+sudo cp -a "conf/nginx.conf" "$nginx_conf_path"
+sudo cp -a "conf/gunicorn.conf.py" "$gunicorn_conf_path"
+sudo cp -a "conf/supervisor.conf" "$supervisor_conf_path"
+sudo cp -a "conf/settings.py" "$ihatemoney_conf_path"
+
+# Install debian packages dependencies
+sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
+
+# Reload
+sudo systemctl reload nginx
+sudo systemctl restart supervisor
+sudo supervisorctl restart budget

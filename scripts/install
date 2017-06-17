@@ -4,14 +4,14 @@ set -eu
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
-# Source local utils
-source _common.sh
-
 # Retrieve arguments
 domain=$YNH_APP_ARG_DOMAIN
 path=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
 app=ihatemoney
+
+# Source local utils
+source _common.sh
 
 # Database settings
 db_pwd=$(ynh_string_random)
