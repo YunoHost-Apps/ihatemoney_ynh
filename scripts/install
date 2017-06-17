@@ -60,7 +60,7 @@ ynh_app_setting_set $app is_public "$is_public"
 sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
 
 # Create the dedicated user
-sudo mkdir -p /optc/yunohost
+sudo mkdir -p /opt/yunohost
 sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home
 
 # Install source
