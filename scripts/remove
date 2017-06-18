@@ -15,7 +15,8 @@ db_name=$app
 root_pwd=$(sudo cat /etc/yunohost/mysql)
 
 # Drop database
-mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user@localhost ;"
+ynh_mysql_drop_db $db_name
+ynh_mysql_drop_user $db_user
 
 # Remove src
 sudo rm -rf /opt/yunohost/ihatemoney/
