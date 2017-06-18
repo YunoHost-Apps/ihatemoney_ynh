@@ -29,7 +29,6 @@ sudo rm /etc/nginx/conf.d/$domain.d/ihatemoney.conf
 sudo supervisorctl stop budget
 sudo service supervisor force-reload
 sudo service nginx reload
-sudo yunohost app ssowatconf
 
 # Delete user
 sudo userdel ihatemoney
