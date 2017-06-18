@@ -46,7 +46,11 @@ test -f $gunicorn_conf_path && ynh_die \
 "The Gunicorn configuration already exists at '${gunicorn_conf_path}'.
  You should safely delete it before restoring this app."
 
+# Install debian packages dependencies
+sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
+
 # Create the dedicated user
+sudo mkdir -p /opt/yunohost/
 sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home
 
 # Restore the app files
@@ -66,9 +70,6 @@ sudo cp -a "conf/nginx.conf" "$nginx_conf_path"
 sudo cp -a "conf/gunicorn.conf.py" "$gunicorn_conf_path"
 sudo cp -a "conf/supervisor.conf" "$supervisor_conf_path"
 sudo cp -a "conf/settings.py" "$ihatemoney_conf_path"
-
-# Install debian packages dependencies
-sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
 
 # Reload
 sudo systemctl reload nginx
