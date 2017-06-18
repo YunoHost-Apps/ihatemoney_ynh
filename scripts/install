@@ -13,6 +13,8 @@ app=ihatemoney
 # Source local utils
 source _common.sh
 
+path=$(ynh_normalize_url_path $path)
+
 # Database settings
 db_pwd=$(ynh_string_random)
 db_name=$app
@@ -28,8 +30,6 @@ if [[ ! $? -eq 0 ]]; then
   ynh_die "${domain}${path} is not available"
 fi
 
-# Remove trailing "/" for next commands
-path=${path%/}
 
 # Configure database
 ynh_mysql_create_db "$db_name" "$db_user" "$db_pwd"
