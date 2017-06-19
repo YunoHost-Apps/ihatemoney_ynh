@@ -56,12 +56,9 @@ trap exit_properly ERR
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app is_public "$is_public"
 
-# Install debian packages dependencies
-sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
+install_apt_dependencies
 
-# Create the dedicated user
-sudo mkdir -p /opt/yunohost
-sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home
+create_unix_user
 
 # Install source
 fetch_and_extract /opt/yunohost/ihatemoney/src/ ihatemoney
@@ -74,9 +71,7 @@ sudo /opt/yunohost/ihatemoney/venv/bin/pip install gunicorn>=19.3.0 MySQL-python
 # Fix permissions
 fix_permissions /opt/yunohost/ihatemoney/src
 
-# Create various dirs
-sudo install -o ihatemoney -g ihatemoney -m 755 \
-     -d /var/log/ihatemoney /etc/ihatemoney
+create_system_dirs
 
 # Configure gunicorn
 sudo install -o ihatemoney -g ihatemoney -m 644 \

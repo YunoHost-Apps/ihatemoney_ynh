@@ -46,12 +46,9 @@ test -f $gunicorn_conf_path && ynh_die \
 "The Gunicorn configuration already exists at '${gunicorn_conf_path}'.
  You should safely delete it before restoring this app."
 
-# Install debian packages dependencies
-sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
+install_apt_dependencies
 
-# Create the dedicated user
-sudo mkdir -p /opt/yunohost/
-sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home
+create_unix_user
 
 # Restore the app files
 sudo cp -a ./install_dir/. "$INSTALL_DIR"
@@ -61,9 +58,7 @@ fix_permissions ${INSTALL_DIR}/src
 ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
 ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./db.sql
 
-# Create various dirs
-sudo install -o ihatemoney -g ihatemoney -m 755 \
-     -d /var/log/ihatemoney /etc/ihatemoney
+create_system_dirs
 
 # Restore settings
 sudo cp -a "conf/nginx.conf" "$nginx_conf_path"

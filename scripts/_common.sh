@@ -43,6 +43,22 @@ fix_permissions() {
 }
 
 
+install_apt_dependencies() {
+    sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
+}
+
+create_unix_user() {
+    sudo mkdir -p /opt/yunohost
+    sudo useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home || ynh_die "User creation failed"
+}
+
+create_system_dirs() {
+    sudo install -o ihatemoney -g ihatemoney -m 755 -d \
+         /var/log/ihatemoney \
+         /etc/ihatemoney
+    sudo mkdir -p /opt/yunohost
+}
+
 ### Backported helpers (from testing)
 
 
