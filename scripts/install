@@ -110,6 +110,9 @@ sudo service nginx reload
 # Start backend
 sudo service supervisor restart
 
+# Reconfigure sso
+sudo yunohost app ssowatconf
+
 # Wait that gunicorn is ready to consider the install finished, that is to
 # avoid HTTP 502 right after installation
 for i in `seq 1 120`
