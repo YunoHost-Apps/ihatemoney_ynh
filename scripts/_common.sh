@@ -13,8 +13,8 @@ fetch_and_extract() {
     local DESTDIR=$1
     local OWNER_USER=${2:-admin}
 
-    VERSION=0.9
-    SHA256=4dab1018563097b309848de5873d63b913390a66327871b0c958ed8516762870
+    VERSION=1.0
+    SHA256=e2ad6e56b161f13911c1c378aad79656bbdfce495189d80f997414803859348e
     SOURCE_URL="https://github.com/spiral-project/ihatemoney/archive/${VERSION}.tar.gz"
 
     # retrieve and extract Roundcube tarball
