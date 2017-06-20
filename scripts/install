@@ -105,7 +105,6 @@ fi
 sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
 sudo install -o root -g root -m644 \
      ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/ihatemoney.conf
-sudo service nginx reload
 
 # Start backend
 sudo service supervisor restart
@@ -120,3 +119,5 @@ do
     test -S /tmp/budget.gunicorn.sock && break
 	sleep 1
 done
+
+sudo service nginx reload
