@@ -3,7 +3,7 @@
 nginx_conf_path="/etc/nginx/conf.d/${domain}.d/ihatemoney.conf"
 supervisor_conf_path="/etc/supervisor/conf.d/ihatemoney.conf"
 gunicorn_conf_path="/etc/ihatemoney/gunicorn.conf.py"
-ihatemoney_conf_path="/etc/ihatemoney/settings.py"
+ihatemoney_conf_path="/etc/ihatemoney/ihatemoney.cfg"
 INSTALL_DIR="/opt/yunohost/ihatemoney"
 
 

@@ -64,7 +64,7 @@ create_system_dirs
 sudo cp -a "conf/nginx.conf" "$nginx_conf_path"
 sudo cp -a "conf/gunicorn.conf.py" "$gunicorn_conf_path"
 sudo cp -a "conf/supervisor.conf" "$supervisor_conf_path"
-sudo cp -a "conf/settings.py" "$ihatemoney_conf_path"
+sudo cp -a "conf/ihatemoney.cfg" "$ihatemoney_conf_path"
 
 # Reload
 sudo systemctl reload nginx
