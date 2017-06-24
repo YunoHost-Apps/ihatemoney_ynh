@@ -17,8 +17,7 @@ fetch_and_extract() {
     SHA256=e2ad6e56b161f13911c1c378aad79656bbdfce495189d80f997414803859348e
     SOURCE_URL="https://github.com/spiral-project/ihatemoney/archive/${VERSION}.tar.gz"
 
-    # retrieve and extract Roundcube tarball
-    tarball="/tmp/ihatemoney.tar.bz2"
+    tarball="/tmp/ihatemoney.tar.gz"
     rm -f "$tarball"
 
     wget -q -O "$tarball" "$SOURCE_URL" \
