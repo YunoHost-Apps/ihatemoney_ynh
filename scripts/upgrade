@@ -34,6 +34,20 @@ fi
 
 ynh_app_setting_set "$app" is_public "$is_public"
 
+function exit_properly () {
+    set +e
+    # Revert to the old venv
+    if [ -e /opt/yunohost/ihatemoney/venv-old ]
+    then
+        sudo mv /opt/yunohost/ihatemoney/venv{-old,}
+    fi
+    # Remove downloaded code
+    sudo rm -rf ${INSTALL_DIR}/src-new/
+    ynh_die "Upgrade script failed, aborted and rolled back the installation"
+}
+trap exit_properly ERR
+
+
 # Upgrade code
 fetch_and_extract ${INSTALL_DIR}/src-new/ ihatemoney
 
