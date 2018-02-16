@@ -64,7 +64,7 @@ create_unix_user
 fetch_and_extract /opt/yunohost/ihatemoney/src/ ihatemoney
 
 # Prepare venv
-sudo virtualenv /opt/yunohost/ihatemoney/venv
+init_virtualenv
 sudo /opt/yunohost/ihatemoney/venv/bin/pip install -r /opt/yunohost/ihatemoney/src/requirements.txt
 sudo /opt/yunohost/ihatemoney/venv/bin/pip install gunicorn>=19.3.0 MySQL-python
 

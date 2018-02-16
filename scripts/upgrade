@@ -41,9 +41,11 @@ fix_permissions ${INSTALL_DIR}/src-new/
 
 # Upgrade dependencies
 sudo ${PIP} install -r ${NEW_REQUIREMENTS}
+sudo ${PIP} install gunicorn>=19.3.0 MySQL-python
 
 # Everything went ok ? Let's keep this code.
 sudo rm -rf ${INSTALL_DIR}/src
+sudo rm -rf ${INSTALL_DIR}/venv-old
 sudo mv ${INSTALL_DIR}/src-new ${INSTALL_DIR}/src
 
 
@@ -61,8 +63,23 @@ fi
 # (ihatemoney now read its conf by default from /etc/ihatemoney/ihatemoney.cfg)
 sudo rm -f ${INSTALL_DIR}/src/budget/settings.py
 
-# Settings are not very likely to change, and that script may be
-# adapted to handle it in case.
+
+
+# MIGRATION: Optionaly switch to a python3 venv
+
+if [ ${INSTALL_DIR}/venv/bin/python -ef ${INSTALL_DIR}/venv/bin/python2 ]
+then
+    install_apt_dependencies
+    # Trash py2 venv
+    sudo mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
+    init_virtualenv
+
+    # Clears all cookie-sessions, because py2 & py3 sessions are incompatible
+    # Relates https://github.com/lepture/flask-wtf/issues/279 (fix unreleased)
+    new_secret_key=`openssl rand -base64 32`
+    sudo sed -i "s/SECRET_KEY = \".*\"/SECRET_KEY = \"${new_secret_key}\"/g" /etc/ihatemoney/ihatemoney.cfg
+fi
+
 
 # Restart backend
 sudo supervisorctl restart budget

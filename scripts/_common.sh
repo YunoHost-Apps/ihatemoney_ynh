@@ -43,7 +43,7 @@ fix_permissions() {
 
 
 install_apt_dependencies() {
-    sudo apt-get install -y -qq python-dev python-virtualenv supervisor libmysqlclient-dev
+    sudo apt-get install -y -qq python3-dev python3-virtualenv supervisor libmysqlclient-dev
 }
 
 create_unix_user() {
@@ -56,6 +56,10 @@ create_system_dirs() {
          /var/log/ihatemoney \
          /etc/ihatemoney
     sudo mkdir -p /opt/yunohost
+}
+
+init_virtualenv () {
+    sudo virtualenv /opt/yunohost/ihatemoney/venv --python /usr/bin/python3
 }
 
 ### Backported helpers (from testing)
