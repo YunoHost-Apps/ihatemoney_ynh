@@ -55,7 +55,7 @@ fix_permissions ${INSTALL_DIR}/src-new/
 
 # Upgrade dependencies
 sudo ${PIP} install -r ${NEW_REQUIREMENTS}
-sudo ${PIP} install gunicorn>=19.3.0 MySQL-python
+sudo ${PIP} install 'gunicorn>=19.3.0' 'PyMySQL'
 
 # Everything went ok ? Let's keep this code.
 sudo rm -rf ${INSTALL_DIR}/src
@@ -93,6 +93,14 @@ then
     new_secret_key=`openssl rand -base64 32`
     sudo sed -i "s/SECRET_KEY = \".*\"/SECRET_KEY = \"${new_secret_key}\"/g" /etc/ihatemoney/ihatemoney.cfg
 fi
+
+
+
+# MIGRATION: Switch Python-MySQL -> PyMySQL
+
+# Python-MySQL is no longer maintained and does not support Py3
+sudo sed -i "s@'mysql://@'mysql+pymysql://@g" ${ihatemoney_conf_path}
+
 
 
 # Restart backend
