@@ -91,7 +91,7 @@ then
     # Clears all cookie-sessions, because py2 & py3 sessions are incompatible
     # Relates https://github.com/lepture/flask-wtf/issues/279 (fix unreleased)
     new_secret_key=`openssl rand -base64 32`
-    sudo sed -i "s/SECRET_KEY = \".*\"/SECRET_KEY = \"${new_secret_key}\"/g" /etc/ihatemoney/ihatemoney.cfg
+    sudo sed -i "s@SECRET_KEY = \".*\"@SECRET_KEY = \"${new_secret_key}\"@g" ${ihatemoney_conf_path}
 fi
 
 
