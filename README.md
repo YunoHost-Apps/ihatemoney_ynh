@@ -1,7 +1,7 @@
 Yunohost app for Ihatemoney budget web app
 ==========================================
 
-[![Build Status](https://ci-apps.yunohost.org/jenkins/buildStatus/icon?job=ihatemoney (Community))](https://ci-apps.yunohost.org/jenkins/job/ihatemoney%20(Community)/)
+[![Build Status](https://ci-apps.yunohost.org/jenkins/buildStatus/icon?job=ihatemoney+%28Community%29)](https://ci-apps.yunohost.org/jenkins/job/ihatemoney%20(Community)/)
 
 Backs on MySQL database, the identifiers are per-project, not per-user, so no
 way to do advanced SSO integration with yunohost accounts.
