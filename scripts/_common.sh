@@ -43,7 +43,7 @@ fix_permissions() {
 
 
 install_apt_dependencies() {
-    sudo apt-get install -y -qq python3-dev python3-virtualenv supervisor libmysqlclient-dev
+    sudo apt-get install -y -qq python3-virtualenv supervisor
 }
 
 create_unix_user() {
