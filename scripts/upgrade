@@ -11,28 +11,17 @@ app=$YNH_APP_INSTANCE_NAME
 # Installation paths
 INSTALL_DIR=/opt/yunohost/ihatemoney
 PIP=${INSTALL_DIR}/venv/bin/pip
-NEW_REQUIREMENTS=${INSTALL_DIR}/src-new/requirements.txt
 
 # Source YunoHost helpers
 . /usr/share/yunohost/helpers
 
-domain=$(ynh_app_setting_get "$app" domain)
-
-# Source local utils
-source _common.sh
-
-# Optionaly upgrade arg to typed boolean form
-
+domain=$(ynh_app_setting_get $app domain)
+path=$(ynh_app_setting_get $app path)
 is_public=$(ynh_app_setting_get "$app" is_public)
 
-if [ $is_public = "No" ];
-then
-    is_public=0
-else
-    is_public=1
-fi
-
-ynh_app_setting_set "$app" is_public "$is_public"
+VENV_PY_VERSION=$(echo ${INSTALL_DIR}/venv/bin/python*.*|sed 's/.*python//')
+# Source local utils
+source _common.sh
 
 function exit_properly () {
     set +e
@@ -41,47 +30,33 @@ function exit_properly () {
     then
         sudo mv /opt/yunohost/ihatemoney/venv{-old,}
     fi
-    # Remove downloaded code
-    sudo rm -rf ${INSTALL_DIR}/src-new/
     ynh_die "Upgrade script failed, aborted and rolled back the installation"
 }
 trap exit_properly ERR
 
 
-# Upgrade code
-fetch_and_extract ${INSTALL_DIR}/src-new/ ihatemoney
 
-fix_permissions ${INSTALL_DIR}/src-new/
-
-# Upgrade dependencies
-sudo ${PIP} install -r ${NEW_REQUIREMENTS}
-sudo ${PIP} install 'gunicorn>=19.3.0' 'PyMySQL'
-
-# Everything went ok ? Let's keep this code.
-sudo rm -rf ${INSTALL_DIR}/src
-sudo rm -rf ${INSTALL_DIR}/venv-old
-sudo mv ${INSTALL_DIR}/src-new ${INSTALL_DIR}/src
+#----------------------------PRE-UPGRADE MIGRATIONS-----------------------
 
 
-## Migration from old versions of the package
 
+# MIGRATION: upgrade arg to typed boolean form
 
-if [ -e /etc/ihatemoney/settings.py ]; then
-    # Strip out the no longer used part of the settings
-    sudo python2 -c"d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
-    # Rename
-    sudo mv /etc/ihatemoney/settings.py ${ihatemoney_conf_path}
+if (($is_public != 0)) && (($is_public != 1))
+then
+    if [ $is_public = "No" ];
+    then
+        is_public=0
+    else
+        is_public=1
+    fi
+    ynh_app_setting_set "$app" is_public "$is_public"
 fi
 
-# Remove no longer used symlink
-# (ihatemoney now read its conf by default from /etc/ihatemoney/ihatemoney.cfg)
-sudo rm -f ${INSTALL_DIR}/src/budget/settings.py
 
 
-
-# MIGRATION: Optionaly switch to a python3 venv
-
-if [ ${INSTALL_DIR}/venv/bin/python -ef ${INSTALL_DIR}/venv/bin/python2 ]
+# MIGRATION: Switch to a python3 venv
+if [[ "$VENV_PY_VERSION" == 2.7 ]]
 then
     install_apt_dependencies
     # Trash py2 venv
@@ -91,17 +66,72 @@ then
     # Clears all cookie-sessions, because py2 & py3 sessions are incompatible
     # Relates https://github.com/lepture/flask-wtf/issues/279 (fix unreleased)
     new_secret_key=`openssl rand -base64 32`
-    sudo sed -i "s@SECRET_KEY = \".*\"@SECRET_KEY = \"${new_secret_key}\"@g" ${ihatemoney_conf_path}
+    sudo sed -i "s/SECRET_KEY = \".*\"/SECRET_KEY = \"${new_secret_key}\"/g" /etc/ihatemoney/ihatemoney.cfg
 fi
 
 
 
-# MIGRATION: Switch Python-MySQL -> PyMySQL
+#-------------------------------UPGRADE-------------------------
+
+
+# Upgrade code and dependencies
+sudo ${PIP} install --upgrade  'gunicorn>=19.3.0' PyMySQL 'ihatemoney>=2,<3'
+
+
+#-----------------------POST-UPGRADE MIGRATIONS-----------------
+
+
+
 
 # Python-MySQL is no longer maintained and does not support Py3
 sudo sed -i "s@'mysql://@'mysql+pymysql://@g" ${ihatemoney_conf_path}
 
 
 
+# MIGRATION: Remove old code (from pre-2.x versions, not using pip)
+
+sudo rm -rf ${INSTALL_DIR}/src
+
+
+
+# MIGRATION: change the static path (from pre-2.x versions, not using pip)
+
+if grep -q /opt/yunohost/ihatemoney/src/ /etc/nginx/conf.d/${domain}.d/ihatemoney.conf
+then
+    # the static path changed
+    configure_nginx "$domain" "$path"
+
+    # Supervisor no longer change its directory to src/ dir
+    configure_supervisor
+    supervisorctl update
+fi
+
+
+# MIGRATION: new-style settings
+
+if [ -e /etc/ihatemoney/settings.py ]; then
+    # Strip out the no longer used part of the settings
+    sudo python2 -c"d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
+    # Rename
+    sudo mv /etc/ihatemoney/settings.py ${ihatemoney_conf_path}
+fi
+
+
+
+# MIGRATION: Remove no longer used symlink
+
+# (ihatemoney now read its conf by default from /etc/ihatemoney/ihatemoney.cfg)
+sudo rm -f ${INSTALL_DIR}/src/budget/settings.py
+
+
+
+#----------------------------FINALIZATION-----------------------
+
+# Everything went ok ? Let's keep this new venv.
+sudo rm -rf ${INSTALL_DIR}/venv-old
+
 # Restart backend
 sudo supervisorctl restart budget
+
+# Reload nginx conf
+sudo systemctl reload nginx

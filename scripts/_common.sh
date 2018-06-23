@@ -9,38 +9,6 @@ INSTALL_DIR="/opt/yunohost/ihatemoney"
 
 ### Functions
 
-fetch_and_extract() {
-    local DESTDIR=$1
-    local OWNER_USER=${2:-admin}
-
-    VERSION=1.0
-    SHA256=e2ad6e56b161f13911c1c378aad79656bbdfce495189d80f997414803859348e
-    SOURCE_URL="https://github.com/spiral-project/ihatemoney/archive/${VERSION}.tar.gz"
-
-    tarball="/tmp/ihatemoney.tar.gz"
-    rm -f "$tarball"
-
-    wget -q -O "$tarball" "$SOURCE_URL" \
-        || ynh_die "Unable to download tarball"
-    echo "$SHA256 $tarball" | sha256sum -c >/dev/null \
-        || ynh_die "Invalid checksum of downloaded tarball"
-    test -d $DESTDIR || sudo mkdir $DESTDIR
-    sudo tar xaf "${tarball}" -C "$DESTDIR" --strip-components 1\
-        || ynh_die "Unable to extract tarball"
-
-    rm -f "$tarball"
-}
-
-
-fix_permissions() {
-    local SRC_DIR=$1
-
-    sudo find $SRC_DIR -type f | while read LINE; do sudo chmod 640 "$LINE" ; done
-    sudo find $SRC_DIR -type d | while read LINE; do sudo chmod 755 "$LINE" ; done
-    sudo chown -R ihatemoney:ihatemoney $SRC_DIR
-    sudo chown -R www-data:www-data ${SRC_DIR}/budget/static
-}
-
 
 install_apt_dependencies() {
     sudo apt-get install -y -qq python3-virtualenv supervisor
@@ -61,6 +29,23 @@ create_system_dirs() {
 init_virtualenv () {
     sudo virtualenv /opt/yunohost/ihatemoney/venv --python /usr/bin/python3
 }
+
+configure_nginx () {
+    local domain=$1
+    local path=$2
+
+    sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
+    # Fix double-slash for domain-root install
+    sed -i "s@location //@location /@" ../conf/nginx.conf
+    sudo install -o root -g root -m644 \
+         ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/ihatemoney.conf
+}
+
+configure_supervisor () {
+    sudo install -o root -g root -m 644 \
+         ../conf/supervisord.conf /etc/supervisor/conf.d/ihatemoney.conf
+}
+
 
 ### Backported helpers (from testing)
 

@@ -60,16 +60,9 @@ install_apt_dependencies
 
 create_unix_user
 
-# Install source
-fetch_and_extract /opt/yunohost/ihatemoney/src/ ihatemoney
-
 # Prepare venv
 init_virtualenv
-sudo /opt/yunohost/ihatemoney/venv/bin/pip install -r /opt/yunohost/ihatemoney/src/requirements.txt
-sudo /opt/yunohost/ihatemoney/venv/bin/pip install 'gunicorn>=19.3.0' PyMySQL
-
-# Fix permissions
-fix_permissions /opt/yunohost/ihatemoney/src
+sudo /opt/yunohost/ihatemoney/venv/bin/pip install 'gunicorn>=19.3.0' PyMySQL 'ihatemoney>=2,<3'
 
 create_system_dirs
 
@@ -78,8 +71,7 @@ sudo install -o ihatemoney -g ihatemoney -m 644 \
      ../conf/gunicorn.conf.py /etc/ihatemoney/gunicorn.conf.py
 
 # Configure supervisor
-sudo install -o root -g root -m 644 \
-     ../conf/supervisord.conf /etc/supervisor/conf.d/ihatemoney.conf
+configure_supervisor
 sudo yunohost service add supervisor
 
 # Configure ihatemoney
@@ -98,13 +90,8 @@ then
     ynh_app_setting_set $app unprotected_uris "/"
 fi
 
-# Configure Nginx and reload
-sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
-# Fix double-slash for domain-root install
-sed -i "s@location //@location /@" ../conf/nginx.conf
-
-sudo install -o root -g root -m644 \
-     ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/ihatemoney.conf
+# Configure Nginx
+configure_nginx "$domain" "$path"
 
 # Start backend
 sudo service supervisor restart

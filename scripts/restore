@@ -52,7 +52,6 @@ create_unix_user
 
 # Restore the app files
 sudo cp -a ./install_dir/. "$INSTALL_DIR"
-fix_permissions ${INSTALL_DIR}/src
 
 # Create and restore the database
 ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
