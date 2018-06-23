@@ -21,7 +21,7 @@ sudo supervisorctl stop budget
 ynh_mysql_drop_db $db_name
 ynh_mysql_drop_user $db_user
 
-# Remove src
+# Remove src and venv
 sudo rm -rf /opt/yunohost/ihatemoney/
 
 # Remove settings
