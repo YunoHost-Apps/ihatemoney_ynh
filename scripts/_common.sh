@@ -11,7 +11,7 @@ INSTALL_DIR="/opt/yunohost/ihatemoney"
 
 
 install_apt_dependencies() {
-    sudo apt-get install -y -qq python3-virtualenv supervisor
+    ynh_install_app_dependencies python3-virtualenv supervisor virtualenv
 }
 
 create_unix_user() {
