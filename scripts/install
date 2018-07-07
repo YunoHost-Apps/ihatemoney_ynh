@@ -75,6 +75,9 @@ sudo install -o ihatemoney -g ihatemoney -m 644 \
 
 # Configure supervisor
 configure_supervisor
+# In case it was already installed before,
+# so that it picks /etc/supervisor/conf.d/ihatemoney.conf:
+supervisorctl update
 sudo yunohost service add supervisor
 
 # Configure ihatemoney
