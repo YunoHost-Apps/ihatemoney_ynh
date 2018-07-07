@@ -30,8 +30,8 @@ sudo rm /etc/supervisor/conf.d/ihatemoney.conf
 sudo rm /etc/nginx/conf.d/$domain.d/ihatemoney.conf
 
 # Restart services
-sudo service supervisor force-reload
-sudo service nginx reload
+sudo systemctl force-reload supervisor
+sudo systemctl reload nginx
 sudo yunohost app ssowatconf
 
 # Delete user

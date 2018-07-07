@@ -100,7 +100,7 @@ fi
 configure_nginx "$domain" "$path"
 
 # Start backend
-sudo service supervisor restart
+sudo systemctl start supervisor
 
 # Reconfigure sso
 sudo yunohost app ssowatconf
@@ -113,8 +113,7 @@ do
 	sleep 1
 done
 
-sudo service nginx reload
 # If socket not ready after 2 minutes waiting, ihatemoney will not work.
 test -S /tmp/budget.gunicorn.sock || exit_properly
 
-
+sudo systemctl reload nginx
