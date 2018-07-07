@@ -11,7 +11,12 @@ INSTALL_DIR="/opt/yunohost/ihatemoney"
 
 
 install_apt_dependencies() {
-    ynh_install_app_dependencies python3-virtualenv supervisor virtualenv
+    ynh_install_app_dependencies \
+        python3-dev \
+        python3-virtualenv \
+        libssl-dev \
+        supervisor \
+        virtualenv
 }
 
 create_unix_user() {
@@ -28,6 +33,9 @@ create_system_dirs() {
 
 init_virtualenv () {
     sudo virtualenv /opt/yunohost/ihatemoney/venv --python /usr/bin/python3
+    # PyMySQL → cryptography → setuptools>=18.5
+    # Required on Jessie, Stretch has setuptools>=18.5
+    /opt/yunohost/ihatemoney/venv/bin/pip install 'setuptools>=18.5'
 }
 
 configure_nginx () {
