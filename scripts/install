@@ -108,3 +108,7 @@ do
 done
 
 sudo service nginx reload
+# If socket not ready after 2 minutes waiting, ihatemoney will not work.
+test -S /tmp/budget.gunicorn.sock || exit_properly
+
+
