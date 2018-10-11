@@ -62,11 +62,13 @@ create_unix_user
 
 # Prepare venv
 init_virtualenv
+sudo /opt/yunohost/ihatemoney/venv/bin/pip install 'pip<10'
 sudo /opt/yunohost/ihatemoney/venv/bin/pip install \
      'gunicorn>=19.3.0' \
      'PyMySQL>=0.9,<0.10' \
      'ihatemoney>=2,<3' \
 
+app_home=$(dirname $(find /opt/yunohost/ihatemoney/venv/lib/ -type d -name static | head -n1))
 create_system_dirs
 
 # Configure gunicorn
@@ -97,7 +99,7 @@ then
 fi
 
 # Configure Nginx
-configure_nginx "$domain" "$path"
+configure_nginx "$domain" "$path" "$app_home"
 
 # Start backend
 sudo systemctl start supervisor
