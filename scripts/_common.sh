@@ -41,8 +41,10 @@ init_virtualenv () {
 configure_nginx () {
     local domain=$1
     local path=$2
+    local app_home=$3
 
     sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
+    sed -i "s@APPHOME@$app_home@g" ../conf/nginx.conf
     # Fix double-slash for domain-root install
     sed -i "s@location //@location /@" ../conf/nginx.conf
     sudo install -o root -g root -m644 \
