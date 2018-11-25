@@ -1,8 +1,9 @@
 #!/bin/bash
-set -eu
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
+
+ynh_abort_if_errors
 
 # Get multi-instances specific variables
 app=$YNH_APP_INSTANCE_NAME

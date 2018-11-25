@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eu
 
 # Source app helpers
 source /usr/share/yunohost/helpers
@@ -26,6 +25,7 @@ fi
 
 source _common.sh
 
+ynh_abort_if_errors
 
 ynh_webpath_register $app $domain $path
 

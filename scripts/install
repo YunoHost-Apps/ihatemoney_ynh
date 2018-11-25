@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eu
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
@@ -25,28 +24,14 @@ db_user=ihatemoney
 secret_key=`openssl rand -base64 32`
 mails_sender="no-reply@${domain}"
 
+
+ynh_abort_if_errors
+
 ynh_webpath_register $app $domain $path
 
 # Configure database
 ynh_mysql_create_db "$db_name" "$db_user" "$db_pwd"
 ynh_app_setting_set $app mysqlpwd $db_pwd
-
-# Delete db, user dirs and conf if exit with an error
-# inspired from https://github.com/Kloadut/owncloud_ynh/blob/master/scripts/install#L37
-
-function exit_properly
-{
-    set +e
-    ynh_mysql_drop_db $db_name
-    ynh_mysql_drop_user $db_user
-    sudo userdel ihatemoney
-    sudo rm -Rf /opt/yunohost/ihatemoney
-    sudo rm -Rf /etc/ihatemoney
-    sudo rm /etc/nginx/conf.d/$domain.d/ihatemoney.conf
-    sudo rm /etc/supervisor/conf.d/ihatemoney.conf
-    ynh_die "Install script failed, aborted and rolled back the installation"
-}
-trap exit_properly ERR
 
 # Save app settings
 ynh_app_setting_set $app domain $domain

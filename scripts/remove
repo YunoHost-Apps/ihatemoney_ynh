@@ -1,5 +1,4 @@
 #!/bin/bash
-set -u
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers

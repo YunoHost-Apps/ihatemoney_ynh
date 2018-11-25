@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eu
 app=$YNH_APP_INSTANCE_NAME
 
 
@@ -23,17 +22,14 @@ VENV_PY_VERSION=$(echo ${INSTALL_DIR}/venv/bin/python*.*|sed 's/.*python//')
 # Source local utils
 source _common.sh
 
-function exit_properly () {
-    set +e
-    # Revert to the old venv
+ynh_clean_setup () {
     if [ -e /opt/yunohost/ihatemoney/venv-old ]
     then
         sudo mv /opt/yunohost/ihatemoney/venv{-old,}
     fi
-    ynh_die "Upgrade script failed, aborted and rolled back the installation"
 }
-trap exit_properly ERR
 
+ynh_abort_if_errors
 
 
 #----------------------------PRE-UPGRADE MIGRATIONS-----------------------
