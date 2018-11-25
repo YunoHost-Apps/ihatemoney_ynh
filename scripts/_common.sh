@@ -14,6 +14,7 @@ install_apt_dependencies() {
     ynh_install_app_dependencies \
         python3-dev \
         python3-virtualenv \
+        libffi-dev \
         libssl-dev \
         supervisor \
         virtualenv
