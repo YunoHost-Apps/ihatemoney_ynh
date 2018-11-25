@@ -34,3 +34,14 @@ Maintainer
 I rely on
 [ihatemoney official releases](https://github.com/spiral-project/ihatemoney/releases)
 (tarballs). Don't hesitate to pull-request this repo if I missed one :-).
+
+
+Ihatemoney license
+------------------
+
+> The code is distributed under a BSD beerware derivative: if you meet the
+> people in person and you want to pay them a craft beer, you are highly
+> encouraged to do so.
+
+[Full license text](https://github.com/spiral-project/ihatemoney/blob/master/LICENSE)
+
