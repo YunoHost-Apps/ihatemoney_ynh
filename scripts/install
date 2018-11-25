@@ -25,11 +25,7 @@ db_user=ihatemoney
 secret_key=`openssl rand -base64 32`
 mails_sender="no-reply@${domain}"
 
-sudo yunohost app checkurl $domain$path -a ihatemoney
-if [[ ! $? -eq 0 ]]; then
-  ynh_die "${domain}${path} is not available"
-fi
-
+ynh_webpath_register $app $domain $path
 
 # Configure database
 ynh_mysql_create_db "$db_name" "$db_user" "$db_pwd"

@@ -27,8 +27,7 @@ fi
 source _common.sh
 
 
-sudo yunohost app checkurl "${domain}${path}" -a "$app" \
-  || ynh_die "The path ${domain}${path} is not available for app installation."
+ynh_webpath_register $app $domain $path
 
 test -d $INSTALL_DIR && ynh_die \
 "The destination directory '$INSTALL_DIR' already exists.\
