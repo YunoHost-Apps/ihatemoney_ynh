@@ -121,7 +121,7 @@ fi
 
 if [ -e /etc/ihatemoney/settings.py ]; then
     # Strip out the no longer used part of the settings
-    sudo python2 -c"d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
+    sudo python2 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
     # Rename
     sudo mv /etc/ihatemoney/settings.py ${ihatemoney_conf_path}
 fi
