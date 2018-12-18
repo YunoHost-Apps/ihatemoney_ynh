@@ -47,20 +47,14 @@ install_apt_dependencies
 
 create_unix_user
 
-# Restore the app files
-sudo cp -a ./install_dir/. "$INSTALL_DIR"
+create_system_dirs
+
+# Restore all backed-up files
+ynh_restore
 
 # Create and restore the database
 ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
 ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./db.sql
-
-create_system_dirs
-
-# Restore settings
-sudo cp -a "conf/nginx.conf" "$nginx_conf_path"
-sudo cp -a "conf/gunicorn.conf.py" "$gunicorn_conf_path"
-sudo cp -a "conf/supervisor.conf" "$supervisor_conf_path"
-sudo cp -a "conf/ihatemoney.cfg" "$ihatemoney_conf_path"
 
 # Reload
 sudo systemctl reload nginx
