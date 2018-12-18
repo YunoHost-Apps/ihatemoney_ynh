@@ -27,8 +27,6 @@ source _common.sh
 
 ynh_abort_if_errors
 
-ynh_webpath_register $app $domain $path
-
 test -d $INSTALL_DIR && ynh_die \
 "The destination directory '$INSTALL_DIR' already exists.\
  You should safely delete it before restoring this app."
