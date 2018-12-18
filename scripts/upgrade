@@ -19,6 +19,8 @@ path=$(ynh_app_setting_get $app path)
 is_public=$(ynh_app_setting_get "$app" is_public)
 
 VENV_PY_VERSION=$(echo ${INSTALL_DIR}/venv/bin/python*.*|sed 's/.*python//')
+SYSTEM_PY_VERSION=$(readlink /usr/bin/python3|sed s/.*python//)
+
 # Source local utils
 source _common.sh
 
@@ -66,6 +68,18 @@ then
 fi
 
 
+
+# MIGRATION: minor Py version has changed ? rebuilt venv
+
+# Useful for  Py 3.4 → 3.5, Jessie → Stretch, ynh 2.x → 3.x
+if [[ "$VENV_PY_VERSION" != '2.7' ]] && [[ "$VENV_PY_VERSION" != "$SYSTEM_PY_VERSION" ]]
+then
+    sudo mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
+    init_virtualenv
+
+    # the static path changed
+    configure_nginx "$domain" "$path"
+fi
 
 #-------------------------------UPGRADE-------------------------
 

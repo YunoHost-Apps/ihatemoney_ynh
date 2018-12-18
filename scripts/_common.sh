@@ -42,8 +42,11 @@ init_virtualenv () {
 configure_nginx () {
     local domain=$1
     local path=$2
+    local python_version="$(readlink /usr/bin/python3|sed s/.*python//)"
+
 
     sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
+    sed -i "s@PYTHON_VERSION@$python_version@g" ../conf/nginx.conf
     # Fix double-slash for domain-root install
     sed -i "s@location //@location /@" ../conf/nginx.conf
     sudo install -o root -g root -m644 \
