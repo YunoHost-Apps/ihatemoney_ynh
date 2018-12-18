@@ -7,6 +7,7 @@
         "fr": "Une application web de comptes partagés à plusieurs"
     },
     "url": "http://ihatemoney.org/",
+    "version": "2.1~ynh1",
     "license": "free",
     "maintainer": {
         "name": "Jocelyn Delalande",
