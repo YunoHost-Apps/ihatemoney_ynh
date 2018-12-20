@@ -85,7 +85,7 @@ fi
 
 
 # Upgrade code and dependencies
-sudo ${PIP} install --upgrade  'gunicorn>=19.3.0' PyMySQL 'ihatemoney>=2,<3'
+sudo ${PIP} install --upgrade  'gunicorn>=19.3.0' PyMySQL 'ihatemoney>=3,<4'
 
 
 #-----------------------POST-UPGRADE MIGRATIONS-----------------

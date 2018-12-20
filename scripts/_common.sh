@@ -35,10 +35,6 @@ create_system_dirs() {
 init_virtualenv () {
     sudo virtualenv /opt/yunohost/ihatemoney/venv --python /usr/bin/python3
 
-    # Will no longer be necessary for ihm>=3.x
-    # https://github.com/spiral-project/ihatemoney/blob/master/CHANGELOG.rst#fixed
-    sudo /opt/yunohost/ihatemoney/venv/bin/pip install 'pip<10'
-
     # PyMySQL → cryptography → setuptools>=18.5
     # Required on Jessie, Stretch has setuptools>=18.5
     /opt/yunohost/ihatemoney/venv/bin/pip install 'setuptools>=18.5'
