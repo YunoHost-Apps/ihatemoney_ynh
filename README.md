@@ -1,6 +1,8 @@
 Yunohost app for « I hate money » budget web app
 ================================================
 
+[![Install « I hate money » with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=ihatemoney)
+
 - Supported Yunohost versions : 2.6.x, 2.7.x 3.x
 - Tested Yunohost version : 3.3.1
 
