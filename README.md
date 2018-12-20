@@ -1,8 +1,6 @@
 Yunohost app for Ihatemoney budget web app
 ==========================================
 
-[![Build Status](https://ci-apps.yunohost.org/jenkins/buildStatus/icon?job=ihatemoney+%28Community%29)](https://ci-apps.yunohost.org/jenkins/job/ihatemoney%20(Community)/)
-
 Supported Yunohost version : 2.7.x
 
 Backs on MySQL database, the identifiers are per-project, not per-user, so no
