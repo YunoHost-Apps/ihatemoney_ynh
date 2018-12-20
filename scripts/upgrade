@@ -2,11 +2,6 @@
 app=$YNH_APP_INSTANCE_NAME
 
 
-# The main logic is to
-# - install in a src-new folder
-# - upgrade dependencies
-# - if everything OK, rename src-new to src
-
 # Installation paths
 INSTALL_DIR=/opt/yunohost/ihatemoney
 
