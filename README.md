@@ -1,5 +1,5 @@
-Yunohost app for Ihatemoney budget web app
-==========================================
+Yunohost app for « I hate money » budget web app
+================================================
 
 - Supported Yunohost versions : 2.6.x, 2.7.x 3.x
 - Tested Yunohost version : 3.3.1
