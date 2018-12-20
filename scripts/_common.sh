@@ -58,20 +58,3 @@ configure_supervisor () {
     sudo install -o root -g root -m 644 \
          ../conf/supervisord.conf /etc/supervisor/conf.d/ihatemoney.conf
 }
-
-
-### Backported helpers (from testing)
-
-
-# Add path
-ynh_normalize_url_path () {
-	path_url=$1
-	test -n "$path_url" || ynh_die "ynh_normalize_url_path expect a URL path as first argument and received nothing."
-	if [ "${path_url:0:1}" != "/" ]; then    # If the first character is not a /
-		path_url="/$path_url"    # Add / at begin of path variable
-	fi
-	if [ "${path_url:${#path_url}-1}" == "/" ] && [ ${#path_url} -gt 1 ]; then    # If the last character is a / and that not the only character.
-		path_url="${path_url:0:${#path_url}-1}"	# Delete the last character
-	fi
-	echo $path_url
-}
