@@ -12,7 +12,7 @@
     "maintainer": {
         "name": "Jocelyn Delalande",
         "email": "jocelyn@crapouillou.net",
-        "url": "http://jocelyn.delalande.fr"
+        "url": "https://jocelyn.delalande.fr"
     },
     "requirements": {
         "yunohost": ">= 2.6.3"
