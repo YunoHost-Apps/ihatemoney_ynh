@@ -1,7 +1,12 @@
 Yunohost app for Ihatemoney budget web app
 ==========================================
 
-Supported Yunohost version : 2.7.x
+- Supported Yunohost versions : 2.6.x, 2.7.x 3.x
+- Tested Yunohost version : 3.3.1
+
+*NB: That means I'll try not to drop support for YunoHost 2.x too soon, and
+accept patches to keep retro-compatibility, but I'll not test it myself against
+YunoHost 2.x*
 
 Backs on MySQL database, the identifiers are per-project, not per-user, so no
 way to do advanced SSO integration with yunohost accounts.
