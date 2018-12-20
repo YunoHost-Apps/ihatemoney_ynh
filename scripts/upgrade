@@ -9,7 +9,6 @@ app=$YNH_APP_INSTANCE_NAME
 
 # Installation paths
 INSTALL_DIR=/opt/yunohost/ihatemoney
-PIP=${INSTALL_DIR}/venv/bin/pip
 
 # Source YunoHost helpers
 . /usr/share/yunohost/helpers
@@ -85,7 +84,7 @@ fi
 
 
 # Upgrade code and dependencies
-sudo ${PIP} install --upgrade  'gunicorn>=19.3.0' PyMySQL 'ihatemoney>=3,<4'
+pip_install
 
 
 #-----------------------POST-UPGRADE MIGRATIONS-----------------

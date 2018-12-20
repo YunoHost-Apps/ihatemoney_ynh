@@ -43,10 +43,7 @@ create_unix_user
 
 # Prepare venv
 init_virtualenv
-sudo /opt/yunohost/ihatemoney/venv/bin/pip install \
-     'gunicorn>=19.3.0' \
-     'PyMySQL>=0.9,<0.10' \
-     'ihatemoney>=3,<4' \
+pip_install
 
 create_system_dirs
 
