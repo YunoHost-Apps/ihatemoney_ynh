@@ -44,7 +44,7 @@ pip_install () {
     sudo /opt/yunohost/ihatemoney/venv/bin/pip install --upgrade \
      'gunicorn>=19.3.0' \
      'PyMySQL>=0.9,<0.10' \
-     'ihatemoney>=3,<4' \
+     'ihatemoney>=4,<5' \
 
 }
 
