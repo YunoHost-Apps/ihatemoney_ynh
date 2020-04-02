@@ -41,11 +41,12 @@ init_virtualenv () {
 }
 
 pip_install () {
+    # Werkzeug stuff is workaround https://github.com/spiral-project/ihatemoney/issues/540
     sudo /opt/yunohost/ihatemoney/venv/bin/pip install --upgrade \
      'gunicorn>=19.3.0' \
      'PyMySQL>=0.9,<0.10' \
      'ihatemoney>=4,<5' \
-     'Werkzeug==0.16' \  # Workaround https://github.com/spiral-project/ihatemoney/issues/540
+     'Werkzeug==0.16' \
 
 }
 
