@@ -45,6 +45,7 @@ pip_install () {
      'gunicorn>=19.3.0' \
      'PyMySQL>=0.9,<0.10' \
      'ihatemoney>=4,<5' \
+     'Werkzeug==0.16' \  # Workaround https://github.com/spiral-project/ihatemoney/issues/540
 
 }
 
