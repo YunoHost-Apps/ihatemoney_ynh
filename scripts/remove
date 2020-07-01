@@ -20,7 +20,7 @@ ynh_mysql_drop_db $db_name
 ynh_mysql_drop_user $db_user
 
 # Remove src and venv
-ynh_secure_remove /opt/yunohost/ihatemoney/
+ynh_secure_remove /opt/yunohost/ihatemoney
 
 # Remove settings
 ynh_secure_remove /etc/ihatemoney
@@ -29,6 +29,9 @@ ynh_remove_nginx_config
 
 # Restart services
 systemctl force-reload supervisor
+
+# Remove app dependencies
+ynh_remove_app_dependencies
 
 # Delete user
 userdel ihatemoney
