@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Source YunoHost helpers
+source _common.sh
 source /usr/share/yunohost/helpers
 
 # Retrieve arguments
@@ -9,19 +10,13 @@ path=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
 app=ihatemoney
 
-# Source local utils
-source _common.sh
-
-path=$(ynh_normalize_url_path $path)
-
 # Database settings
 db_pwd=$(ynh_string_random)
 db_name=$app
 db_user=$app
 
 # Constant arguments
-db_user=ihatemoney
-secret_key=`openssl rand -base64 32`
+secret_key=$(ynh_string_random --length 32)
 mails_sender="no-reply@${domain}"
 
 
@@ -31,11 +26,10 @@ ynh_webpath_register $app $domain $path
 
 # Configure database
 ynh_mysql_create_db "$db_name" "$db_user" "$db_pwd"
-ynh_app_setting_set $app mysqlpwd $db_pwd
 
 # Save app settings
-ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app is_public "$is_public"
+ynh_app_setting_set "$app" mysqlpwd "$db_pwd"
+ynh_app_setting_set "$app" is_public "$is_public"
 
 install_apt_dependencies
 
@@ -48,7 +42,7 @@ pip_install
 create_system_dirs
 
 # Configure gunicorn
-sudo install -o ihatemoney -g ihatemoney -m 644 \
+install -o ihatemoney -g ihatemoney -m 644 \
      ../conf/gunicorn.conf.py /etc/ihatemoney/gunicorn.conf.py
 
 # Configure supervisor
@@ -56,16 +50,16 @@ configure_supervisor
 # In case it was already installed before,
 # so that it picks /etc/supervisor/conf.d/ihatemoney.conf:
 supervisorctl update
-sudo yunohost service add supervisor
+yunohost service add supervisor
 
 # Configure ihatemoney
-sed -i "s@MY_SECRET_KEY@$secret_key@" ../conf/ihatemoney.cfg
-sed -i "s/MY_EMAIL/$mails_sender/" ../conf/ihatemoney.cfg
-sed -i "s@MY_MYSQL_PW@$db_pwd@" ../conf/ihatemoney.cfg
-sed -i "s@MY_PATH@$path@" ../conf/ihatemoney.cfg
+ynh_replace_string "MY_SECRET_KEY" "$secret_key"   ../conf/ihatemoney.cfg
+ynh_replace_string "MY_EMAIL"      "$mails_sender" ../conf/ihatemoney.cfg
+ynh_replace_string "MY_MYSQL_PW"   "$db_pwd"       ../conf/ihatemoney.cfg
+ynh_replace_string "MY_PATH"       "$path"         ../conf/ihatemoney.cfg
 # Remove the conf directive if served at root
 sed -i "/APPLICATION_ROOT='\/'/d" ../conf/ihatemoney.cfg
-sudo install -o ihatemoney -g ihatemoney -m 640 \
+install -o ihatemoney -g ihatemoney -m 640 \
      ../conf/ihatemoney.cfg /etc/ihatemoney/ihatemoney.cfg
 
 # If app is public, add url to SSOWat conf as skipped_uris
@@ -78,10 +72,7 @@ fi
 configure_nginx "$domain" "$path"
 
 # Start backend
-sudo systemctl start supervisor
-
-# Reconfigure sso
-sudo yunohost app ssowatconf
+systemctl start supervisor
 
 # Wait that gunicorn is ready to consider the install finished, that is to
 # avoid HTTP 502 right after installation
@@ -92,6 +83,6 @@ do
 done
 
 # If socket not ready after 2 minutes waiting, ihatemoney will not work.
-test -S /tmp/budget.gunicorn.sock || exit_properly
+test -S /tmp/budget.gunicorn.sock || ynh_die
 
-sudo systemctl reload nginx
+systemctl reload nginx

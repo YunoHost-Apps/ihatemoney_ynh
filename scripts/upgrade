@@ -21,7 +21,7 @@ source _common.sh
 ynh_clean_setup () {
     if [ -e /opt/yunohost/ihatemoney/venv-old ]
     then
-        sudo mv /opt/yunohost/ihatemoney/venv{-old,}
+        mv /opt/yunohost/ihatemoney/venv{-old,}
     fi
 }
 
@@ -52,13 +52,13 @@ if [[ "$VENV_PY_VERSION" == 2.7 ]]
 then
     install_apt_dependencies
     # Trash py2 venv
-    sudo mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
+    mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
     init_virtualenv
 
     # Clears all cookie-sessions, because py2 & py3 sessions are incompatible
     # Relates https://github.com/lepture/flask-wtf/issues/279 (fix unreleased)
-    new_secret_key=`openssl rand -base64 32`
-    sudo sed -i "s/SECRET_KEY = \".*\"/SECRET_KEY = \"${new_secret_key}\"/g" /etc/ihatemoney/ihatemoney.cfg
+    new_secret_key=$(ynh_string_random 32)
+    ynh_replace_string "SECRET_KEY = \".*\"" "SECRET_KEY = \"${new_secret_key}\"" /etc/ihatemoney/ihatemoney.cfg
 fi
 
 
@@ -68,7 +68,7 @@ fi
 # Useful for  Py 3.4 → 3.5, Jessie → Stretch, ynh 2.x → 3.x
 if [[ "$VENV_PY_VERSION" != '2.7' ]] && [[ "$VENV_PY_VERSION" != "$SYSTEM_PY_VERSION" ]]
 then
-    sudo mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
+    mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
     init_virtualenv
 
     # the static path changed
@@ -88,13 +88,13 @@ pip_install
 
 
 # Python-MySQL is no longer maintained and does not support Py3
-sudo sed -i "s@'mysql://@'mysql+pymysql://@g" ${ihatemoney_conf_path}
+ynh_replace_string "'mysql://" "'mysql+pymysql://" ${ihatemoney_conf_path}
 
 
 
 # MIGRATION: Remove old code (from pre-2.x versions, not using pip)
 
-sudo rm -rf ${INSTALL_DIR}/src
+ynh_secure_remove ${INSTALL_DIR}/src
 
 
 
@@ -115,9 +115,9 @@ fi
 
 if [ -e /etc/ihatemoney/settings.py ]; then
     # Strip out the no longer used part of the settings
-    sudo python2 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
+    python2 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
     # Rename
-    sudo mv /etc/ihatemoney/settings.py ${ihatemoney_conf_path}
+    mv /etc/ihatemoney/settings.py ${ihatemoney_conf_path}
 fi
 
 
@@ -125,17 +125,17 @@ fi
 # MIGRATION: Remove no longer used symlink
 
 # (ihatemoney now read its conf by default from /etc/ihatemoney/ihatemoney.cfg)
-sudo rm -f ${INSTALL_DIR}/src/budget/settings.py
+ynh_secure_remove ${INSTALL_DIR}/src/budget/settings.py
 
 
 
 #----------------------------FINALIZATION-----------------------
 
 # Everything went ok ? Let's keep this new venv.
-sudo rm -rf ${INSTALL_DIR}/venv-old
+ynh_secure_remove ${INSTALL_DIR}/venv-old
 
 # Restart backend
-sudo supervisorctl restart budget
+supervisorctl restart budget
 
 # Reload nginx conf
-sudo systemctl reload nginx
+systemctl reload nginx

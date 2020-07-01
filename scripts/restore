@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Source app helpers
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
+
+ynh_abort_if_errors
 
 # Get multi-instances specific variables
 app=$YNH_APP_INSTANCE_NAME
@@ -15,17 +18,6 @@ domain=$(ynh_app_setting_get "$app" domain)
 path=$(ynh_app_setting_get "$app" path)
 dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
 
-
-# Source local utils
-if [ ! -e _common.sh ]; then
-	# Fetch the local helpers files, because unavail to restore script
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
-fi
-
-source _common.sh
-
-ynh_abort_if_errors
 
 test -d $INSTALL_DIR && ynh_die \
 "The destination directory '$INSTALL_DIR' already exists.\
@@ -57,6 +49,6 @@ ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
 ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./db.sql
 
 # Reload
-sudo systemctl reload nginx
-sudo systemctl restart supervisor
-sudo supervisorctl restart budget
+systemctl reload nginx
+systemctl restart supervisor
+supervisorctl restart budget
