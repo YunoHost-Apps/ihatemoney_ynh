@@ -48,3 +48,11 @@ ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./db.sql
 systemctl reload nginx
 systemctl restart supervisor
 supervisorctl restart budget
+
+# Wait that gunicorn is ready to consider the install finished, that is to
+# avoid HTTP 502 right after installation
+for i in `seq 1 120`
+do
+    test -S /tmp/budget.gunicorn.sock && break
+	sleep 1
+done
