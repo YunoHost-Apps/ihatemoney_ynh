@@ -23,10 +23,6 @@ test -d $INSTALL_DIR && ynh_die \
 "The destination directory '$INSTALL_DIR' already exists.\
  You should safely delete it before restoring this app."
 
-test -f $nginx_conf_path && ynh_die \
-"The NGINX configuration already exists at '${nginx_conf_path}'.
- You should safely delete it before restoring this app."
-
 test -f $supervisor_conf_path && ynh_die \
 "The Supervisor configuration already exists at '${supervisor_conf_path}'.
  You should safely delete it before restoring this app."

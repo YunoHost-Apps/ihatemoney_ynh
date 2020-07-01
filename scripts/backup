@@ -22,10 +22,10 @@ dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
 
 # Backup conf files
 mkdir ./conf
-ynh_backup "$nginx_conf_path" "conf/nginx.conf"
-ynh_backup "$gunicorn_conf_path" "conf/gunicorn.conf.py"
-ynh_backup "$supervisor_conf_path" "conf/supervisor.conf"
-ynh_backup "$ihatemoney_conf_path" "conf/ihatemoney.cfg"
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup "$gunicorn_conf_path"
+ynh_backup "$supervisor_conf_path"
+ynh_backup "$ihatemoney_conf_path"
 
 # Dump the database
 mysqldump -u "$dbuser" -p"$dbpass" --no-create-db "$dbname" > ./db.sql
