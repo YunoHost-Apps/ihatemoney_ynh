@@ -15,7 +15,7 @@
         "url": "https://jocelyn.delalande.fr"
     },
     "requirements": {
-        "yunohost": ">= 2.6.3"
+        "yunohost": ">= 3.8"
     },
     "multi_instance": false,
     "services": ["nginx", "mysql", "postfix"],

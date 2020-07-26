@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Source YunoHost helpers
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 ynh_abort_if_errors
@@ -19,21 +20,12 @@ domain=$(ynh_app_setting_get "$app" domain)
 path=$(ynh_app_setting_get "$app" path)
 dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
 
-# Source local utils
-if [ ! -e _common.sh ]; then
-	# Fetch the local helpers files, because unavail to restore script
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
-fi
-
-source _common.sh
-
 # Backup conf files
 mkdir ./conf
-ynh_backup "$nginx_conf_path" "conf/nginx.conf"
-ynh_backup "$gunicorn_conf_path" "conf/gunicorn.conf.py"
-ynh_backup "$supervisor_conf_path" "conf/supervisor.conf"
-ynh_backup "$ihatemoney_conf_path" "conf/ihatemoney.cfg"
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup "$gunicorn_conf_path"
+ynh_backup "$supervisor_conf_path"
+ynh_backup "$ihatemoney_conf_path"
 
 # Dump the database
 mysqldump -u "$dbuser" -p"$dbpass" --no-create-db "$dbname" > ./db.sql

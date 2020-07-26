@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Source app helpers
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
+
+ynh_abort_if_errors
 
 # Get multi-instances specific variables
 app=$YNH_APP_INSTANCE_NAME
@@ -16,23 +19,8 @@ path=$(ynh_app_setting_get "$app" path)
 dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
 
 
-# Source local utils
-if [ ! -e _common.sh ]; then
-	# Fetch the local helpers files, because unavail to restore script
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
-fi
-
-source _common.sh
-
-ynh_abort_if_errors
-
 test -d $INSTALL_DIR && ynh_die \
 "The destination directory '$INSTALL_DIR' already exists.\
- You should safely delete it before restoring this app."
-
-test -f $nginx_conf_path && ynh_die \
-"The NGINX configuration already exists at '${nginx_conf_path}'.
  You should safely delete it before restoring this app."
 
 test -f $supervisor_conf_path && ynh_die \
@@ -57,6 +45,14 @@ ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
 ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./db.sql
 
 # Reload
-sudo systemctl reload nginx
-sudo systemctl restart supervisor
-sudo supervisorctl restart budget
+systemctl reload nginx
+systemctl restart supervisor
+supervisorctl restart budget
+
+# Wait that gunicorn is ready to consider the install finished, that is to
+# avoid HTTP 502 right after installation
+for i in `seq 1 120`
+do
+    test -S /tmp/budget.gunicorn.sock && break
+	sleep 1
+done

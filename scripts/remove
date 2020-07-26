@@ -11,27 +11,27 @@ app=ihatemoney
 domain=$(ynh_app_setting_get $app domain)
 db_user=$app
 db_name=$app
-root_pwd=$(sudo cat /etc/yunohost/mysql)
 
 # Stop service
-sudo supervisorctl stop budget
+supervisorctl stop budget
 
 # Drop database
 ynh_mysql_drop_db $db_name
 ynh_mysql_drop_user $db_user
 
 # Remove src and venv
-sudo rm -rf /opt/yunohost/ihatemoney/
+ynh_secure_remove /opt/yunohost/ihatemoney
 
 # Remove settings
-sudo rm -rf /etc/ihatemoney
-sudo rm /etc/supervisor/conf.d/ihatemoney.conf
-sudo rm /etc/nginx/conf.d/$domain.d/ihatemoney.conf
+ynh_secure_remove /etc/ihatemoney
+ynh_secure_remove /etc/supervisor/conf.d/ihatemoney.conf
+ynh_remove_nginx_config
 
 # Restart services
-sudo systemctl force-reload supervisor
-sudo systemctl reload nginx
-sudo yunohost app ssowatconf
+systemctl force-reload supervisor
+
+# Remove app dependencies
+ynh_remove_app_dependencies
 
 # Delete user
-sudo userdel ihatemoney
+userdel ihatemoney
