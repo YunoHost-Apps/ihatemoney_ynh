@@ -50,7 +50,6 @@ configure_supervisor
 # In case it was already installed before,
 # so that it picks /etc/supervisor/conf.d/ihatemoney.conf:
 supervisorctl update
-yunohost service add supervisor
 
 # Configure ihatemoney
 ynh_replace_string "MY_SECRET_KEY" "$secret_key"   ../conf/ihatemoney.cfg
