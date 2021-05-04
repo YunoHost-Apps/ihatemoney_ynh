@@ -40,10 +40,13 @@ init_virtualenv () {
 }
 
 pip_install () {
+    # SQLAlchemy requirement is workaround https://github.com/pallets/flask-sqlalchemy/issues/910
+    # Might be removed later when IHM dependency set will no longer prevent working installation.
     /opt/yunohost/ihatemoney/venv/bin/pip install --upgrade \
      'gunicorn>=19.3.0' \
      'PyMySQL>=0.9,<0.10' \
      'ihatemoney>=4,<5' \
+     'SQLAlchemy<1.4' \
 
 }
 
