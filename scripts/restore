@@ -1,58 +1,136 @@
 #!/bin/bash
 
-# Source app helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
+source ../settings/scripts/ynh_supervisor
 source /usr/share/yunohost/helpers
 
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
+# Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
-# Get multi-instances specific variables
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_script_progression --message="Loading installation settings..."
+
 app=$YNH_APP_INSTANCE_NAME
 
-# Set app specific variables
-dbname=$app
-dbuser=$app
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$db_name
 
-# Retrieve old app settings
-domain=$(ynh_app_setting_get "$app" domain)
-path=$(ynh_app_setting_get "$app" path)
-dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
+ynh_script_progression --message="Validating restoration parameters..."
 
+ynh_webpath_available --domain=$domain --path_url=$path_url \
+	|| ynh_die --message="Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+	|| ynh_die --message="There is already a directory: $final_path "
 
-test -d $INSTALL_DIR && ynh_die \
-"The destination directory '$INSTALL_DIR' already exists.\
- You should safely delete it before restoring this app."
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring the NGINX configuration..."
 
-test -f $supervisor_conf_path && ynh_die \
-"The Supervisor configuration already exists at '${supervisor_conf_path}'.
- You should safely delete it before restoring this app."
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
-test -f $gunicorn_conf_path && ynh_die \
-"The Gunicorn configuration already exists at '${gunicorn_conf_path}'.
- You should safely delete it before restoring this app."
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Recreating the dedicated system user..."
 
-install_apt_dependencies
+# Create the dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path
 
-create_unix_user
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Restoring the app main directory..."
 
-create_system_dirs
+ynh_restore_file --origin_path="$final_path"
 
-# Restore all backed-up files
-ynh_restore
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:$app "$final_path"
 
-# Create and restore the database
-ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
-ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./db.sql
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Reinstalling dependencies..."
 
-# Reload
-systemctl reload nginx
-systemctl restart supervisor
-supervisorctl restart budget
+# Define and install dependencies
+ynh_install_app_dependencies $pkg_dependencies
 
-# Wait that gunicorn is ready to consider the install finished, that is to
-# avoid HTTP 502 right after installation
-for i in `seq 1 120`
-do
-    test -S /tmp/budget.gunicorn.sock && break
-	sleep 1
-done
+#=================================================
+# RESTORE THE MYSQL DATABASE
+#=================================================
+ynh_script_progression --message="Restoring the MySQL database..."
+
+db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
+ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+ynh_mysql_connect_as --user=$db_user --password=$db_pwd --database=$db_name < ./db.sql
+
+#=================================================
+# RESTORE SUPERVISOR CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring the supervisor configuration..."
+
+ynh_restore_file --origin_path="/etc/supervisor/conf.d/$app"
+supervisorctl reread && supervisorctl update
+
+#=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add "supervisor" --description="Supervisor daemon for $app" --log="/var/log/$app/${app}-horizon.log"
+
+#=================================================
+# START SUPERVISOR SERVICE
+#=================================================
+ynh_script_progression --message="Starting a supervisor service..."
+
+ynh_supervisor_action --service_name="$app" --action="reload" --log_path="systemd" --line_match="success: ${app}-horizon"
+
+#=================================================
+# RESTORE VARIOUS FILES
+#=================================================
+ynh_script_progression --message="Restoring various files..."
+
+install -o $app -g $app -m 755 -d /var/log/ihatemoney 
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX AND PHP-FPM
+#=================================================
+ynh_script_progression --message="Reloading NGINX web server"
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Restoration completed for $app"

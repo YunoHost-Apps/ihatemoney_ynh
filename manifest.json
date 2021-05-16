@@ -6,8 +6,14 @@
         "en": "A simple shared budget manager web application",
         "fr": "Une application web de comptes partagés à plusieurs"
     },
-    "url": "http://ihatemoney.org/",
     "version": "4.1.5~ynh2",
+    "url": "http://ihatemoney.org/",
+    "upstream": {
+        "license": "free",
+        "demo": "https://ihatemoney.org/",
+        "admindoc": "https://ihatemoney.readthedocs.io/",
+        "code": "https://github.com/YunoHost-Apps/ihatemoney_ynh"
+    },
     "license": "free",
     "maintainer": {
         "name": "Jocelyn Delalande",
@@ -18,35 +24,26 @@
         "yunohost": ">= 3.8"
     },
     "multi_instance": false,
-    "services": ["nginx", "mysql", "postfix"],
+    "services": [
+        "nginx",
+        "mysql"
+    ],
     "arguments": {
         "install" : [
             {
                 "name": "domain",
                 "type": "domain",
-                "ask": {
-                    "en": "Choose a domain for ihatemoney",
-                    "fr": "Choisir un domaine pour ihatemoney"
-                },
                 "example": "example.com"
             },
             {
                 "name": "path",
                 "type": "path",
-                "ask": {
-                    "en": "Choose a path for ihatemoney",
-                    "fr": "Choisir un chemin pour ihatemoney"
-                },
                 "example": "/example",
                 "default": "/ihatemoney"
             },
             {
                 "name": "is_public",
                 "type": "boolean",
-                "ask": {
-                    "en": "Is it a public website ? (even if service is public, each project is protected by a password)",
-                    "fr": "Le service est-il public ? (même dans ce cas, chaque projet est protégé par un mot de passe)"
-                },
                 "default": true
             }
         ]

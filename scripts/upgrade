@@ -1,54 +1,65 @@
 #!/bin/bash
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source ynh_supervisor
+source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_script_progression --message="Loading installation settings..."
+
 app=$YNH_APP_INSTANCE_NAME
 
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
 
-# Installation paths
-INSTALL_DIR=/opt/yunohost/ihatemoney
 
-# Source YunoHost helpers
-. /usr/share/yunohost/helpers
 
-domain=$(ynh_app_setting_get $app domain)
-path=$(ynh_app_setting_get $app path)
-is_public=$(ynh_app_setting_get "$app" is_public)
 
-VENV_PY_VERSION=$(echo ${INSTALL_DIR}/venv/bin/python*.*|sed 's/.*python//')
-SYSTEM_PY_VERSION=$(readlink /usr/bin/python3|sed s/.*python//)
 
-# Source local utils
-source _common.sh
+#=================================================
+# CHECK VERSION
+#=================================================
+ynh_script_progression --message="Checking version..."
 
+upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
 ynh_clean_setup () {
-    if [ -e /opt/yunohost/ihatemoney/venv-old ]
-    then
-        mv /opt/yunohost/ihatemoney/venv{-old,}
-    fi
+	ynh_clean_check_starting
+	# Restore it if the upgrade fails
+	ynh_restore_upgradebackup
 }
-
+# Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
 
-#----------------------------PRE-UPGRADE MIGRATIONS-----------------------
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
 
-
-
-# MIGRATION: upgrade arg to typed boolean form
-
-if (($is_public != 0)) && (($is_public != 1))
-then
-    if [ $is_public = "No" ];
-    then
-        is_public=0
-    else
-        is_public=1
-    fi
-    ynh_app_setting_set "$app" is_public "$is_public"
+	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
-
-
 # MIGRATION: Switch to a python3 venv
-if [[ "$VENV_PY_VERSION" == 2.7 ]]
+VENV_PY_VERSION=$(echo ${INSTALL_DIR}/venv/bin/python*.*|sed 's/.*python//')if [[ "$VENV_PY_VERSION" == 2.7 ]]
 then
     install_apt_dependencies
     # Trash py2 venv
@@ -66,6 +77,7 @@ fi
 # MIGRATION: minor Py version has changed ? rebuilt venv
 
 # Useful for  Py 3.4 → 3.5, Jessie → Stretch, ynh 2.x → 3.x
+SYSTEM_PY_VERSION=$(readlink /usr/bin/python3|sed s/.*python//)
 if [[ "$VENV_PY_VERSION" != '2.7' ]] && [[ "$VENV_PY_VERSION" != "$SYSTEM_PY_VERSION" ]]
 then
     mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
@@ -75,67 +87,139 @@ then
     configure_nginx "$domain" "$path"
 fi
 
-#-------------------------------UPGRADE-------------------------
-
-
-# Upgrade code and dependencies
-pip_install
-
-
-#-----------------------POST-UPGRADE MIGRATIONS-----------------
-
-
-
-
-# Python-MySQL is no longer maintained and does not support Py3
-ynh_replace_string "'mysql://" "'mysql+pymysql://" ${ihatemoney_conf_path}
-
-
-
-# MIGRATION: Remove old code (from pre-2.x versions, not using pip)
-
-ynh_secure_remove ${INSTALL_DIR}/src
-
-
-
-# MIGRATION: change the static path (from pre-2.x versions, not using pip)
-
-if grep -q /opt/yunohost/ihatemoney/src/ /etc/nginx/conf.d/${domain}.d/ihatemoney.conf
-then
-    # the static path changed
-    configure_nginx "$domain" "$path"
-
-    # Supervisor no longer change its directory to src/ dir
-    configure_supervisor
-    supervisorctl update
-fi
-
+ynh_secure_remove --file="$final_path/src"
 
 # MIGRATION: new-style settings
 
-if [ -e /etc/ihatemoney/settings.py ]; then
+if [ -e /etc/$app/settings.py ]; then
     # Strip out the no longer used part of the settings
-    python3 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
+    python3 -c "d = open('/etc/$app/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/$app/settings.py', 'w').write(d)"
     # Rename
-    mv /etc/ihatemoney/settings.py ${ihatemoney_conf_path}
+    mv /etc/$app/settings.py /etc/$app/$app.cfg
 fi
 
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# STOP SUPERVISOR SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a supervisor service..."
 
+ynh_supervisor_action --service_name="$app" --action="stop" --log_path="systemd" --line_match="stopped: ${app}-horizon"
 
-# MIGRATION: Remove no longer used symlink
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..."
 
-# (ihatemoney now read its conf by default from /etc/ihatemoney/ihatemoney.cfg)
-ynh_secure_remove ${INSTALL_DIR}/src/budget/settings.py
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path
 
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
 
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	ynh_script_progression --message="Upgrading source files..."
 
-#----------------------------FINALIZATION-----------------------
+	# Download, check integrity, uncompress and patch the source from app.src
+	mkdir -p $final_path
+fi
 
-# Everything went ok ? Let's keep this new venv.
-ynh_secure_remove ${INSTALL_DIR}/venv-old
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:$app "$final_path"
 
-# Restart backend
-supervisorctl restart budget
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading NGINX web server configuration..."
 
-# Reload nginx conf
-systemctl reload nginx
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Upgrading dependencies..."
+
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
+# BUILD IHATEMONEY
+#=================================================
+ynh_script_progression --message="Building $app..."
+
+pushd $final_path
+    # Prepare venv
+    ynh_secure_remove --file="$final_path/venv"
+    python3 -m venv $final_path/venv
+    source $final_path/venv/bin/activate
+
+    # PyMySQL ? cryptography ? setuptools>=18.5
+    # Required on Jessie, Stretch has setuptools>=18.5
+    $final_path/venv/bin/pip install 'setuptools>=18.5'
+
+    # SQLAlchemy requirement is workaround https://github.com/pallets/flask-sqlalchemy/issues/910
+    # Might be removed later when IHM dependency set will no longer prevent working installation.
+    $final_path/venv/bin/pip install --upgrade \
+     'gunicorn>=19.3.0' \
+     'PyMySQL>=0.9,<0.10' \
+     'ihatemoney>=4,<5' \
+     'SQLAlchemy<1.4'
+popd
+ 
+#=================================================
+# UPDATE A CONFIG FILE
+#=================================================
+ynh_script_progression --message="Updating a config file..."
+
+ynh_add_config --template="../conf/gunicorn.conf.py" --destination="/etc/$app/gunicorn.conf.py"
+
+chmod 644 "/etc/$app/gunicorn.conf.py"
+chown $app:$app "/etc/$app/gunicorn.conf.py"
+
+ynh_add_config --template="../conf/ihatemoney.cfg" --destination="/etc/$app/ihatemoney.cfg"
+
+chmod 400 "/etc/$app/ihatemoney.cfg"
+chown $app:$app "/etc/$app/ihatemoney.cfg"
+
+#=================================================
+# SETUP SUPERVISOR
+#=================================================
+ynh_script_progression --message="Upgrading supervisor configuration..."
+
+# Create a dedicated supervisor config
+ynh_add_supervisor_config --service="$app" --template=ihatemoney.conf
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add "supervisor" --description="Supervisor daemon for $app" --log="/var/log/$app/${app}-horizon.log"
+
+#=================================================
+# START SUPERVISOR SERVICE
+#=================================================
+ynh_script_progression --message="Starting a supervisor service..."
+
+ynh_supervisor_action --service_name="$app" --action="start" --log_path="systemd" --line_match="success: ${app}-horizon"
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_script_progression --message="Reloading NGINX web server..."
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Upgrade of $app completed"
