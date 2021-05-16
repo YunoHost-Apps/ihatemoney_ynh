@@ -1,7 +1,7 @@
 « I hate money » budget web app for YunoHost
 ================================================
 
-[![Integration level](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg)  ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg) 
+[![Integration level](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg)  ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)  
 [![Install ihatemoney with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
 > *This package allows you to install ihatemoney quickly and simply on a YunoHost server.
