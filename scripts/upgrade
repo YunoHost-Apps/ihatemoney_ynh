@@ -1,141 +1,227 @@
 #!/bin/bash
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_script_progression --message="Loading installation settings..." --weight=1
+
 app=$YNH_APP_INSTANCE_NAME
 
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$db_name
+db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 
-# Installation paths
-INSTALL_DIR=/opt/yunohost/ihatemoney
+#=================================================
+# CHECK VERSION
+#=================================================
 
-# Source YunoHost helpers
-. /usr/share/yunohost/helpers
+### This helper will compare the version of the currently installed app and the version of the upstream package.
+### $upgrade_type can have 2 different values
+### - UPGRADE_APP if the upstream app version has changed
+### - UPGRADE_PACKAGE if only the YunoHost package has changed
+### ynh_check_app_version_changed will stop the upgrade if the app is up to date.
+### UPGRADE_APP should be used to upgrade the core app only if there's an upgrade to do.
+upgrade_type=$(ynh_check_app_version_changed)
 
-domain=$(ynh_app_setting_get $app domain)
-path=$(ynh_app_setting_get $app path)
-is_public=$(ynh_app_setting_get "$app" is_public)
+if ynh_compare_current_package_version --comparison le --version "4.1.5~ynh2"; then
+	upgrade_from_opt=true
+else
+	upgrade_from_opt=false
+fi
 
-VENV_PY_VERSION=$(echo ${INSTALL_DIR}/venv/bin/python*.*|sed 's/.*python//')
-SYSTEM_PY_VERSION=$(readlink /usr/bin/python3|sed s/.*python//)
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=3
 
-# Source local utils
-source _common.sh
-
+# Backup the current version of the app
+ynh_backup_before_upgrade
 ynh_clean_setup () {
-    if [ -e /opt/yunohost/ihatemoney/venv-old ]
-    then
-        mv /opt/yunohost/ihatemoney/venv{-old,}
-    fi
+	# Restore it if the upgrade fails
+	ynh_restore_upgradebackup
 }
-
+# Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
 
-#----------------------------PRE-UPGRADE MIGRATIONS-----------------------
+if [[ "$upgrade_from_opt" == "false" ]]; then
+	ynh_script_progression --message="Stopping a systemd service..." --weight=1
 
-
-
-# MIGRATION: upgrade arg to typed boolean form
-
-if (($is_public != 0)) && (($is_public != 1))
-then
-    if [ $is_public = "No" ];
-    then
-        is_public=0
-    else
-        is_public=1
-    fi
-    ynh_app_setting_set "$app" is_public "$is_public"
+	ynh_systemd_action --service_name=$app --action="stop" --log_path=systemd
 fi
 
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
 
-# MIGRATION: Switch to a python3 venv
-if [[ "$VENV_PY_VERSION" == 2.7 ]]
-then
-    install_apt_dependencies
-    # Trash py2 venv
-    mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
-    init_virtualenv
-
-    # Clears all cookie-sessions, because py2 & py3 sessions are incompatible
-    # Relates https://github.com/lepture/flask-wtf/issues/279 (fix unreleased)
-    new_secret_key=$(ynh_string_random 32)
-    ynh_replace_string "SECRET_KEY = \".*\"" "SECRET_KEY = \"${new_secret_key}\"" /etc/ihatemoney/ihatemoney.cfg
+	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
+# MIGRATION: Remove old code (from pre-4.1.5 versions, not using venv)
+if [[ "$upgrade_from_opt" == "true" ]]; then
 
+	# Remove legacy install dir
+	ynh_secure_remove /opt/yunohost/ihatemoney
 
-# MIGRATION: minor Py version has changed ? rebuilt venv
+	# Remove legacy Supervisor config
+	rm -f /etc/supervisor/conf.d/ihatemoney.conf
 
-# Useful for  Py 3.4 → 3.5, Jessie → Stretch, ynh 2.x → 3.x
-if [[ "$VENV_PY_VERSION" != '2.7' ]] && [[ "$VENV_PY_VERSION" != "$SYSTEM_PY_VERSION" ]]
-then
-    mv ${INSTALL_DIR}/venv ${INSTALL_DIR}/venv-old
-    init_virtualenv
+	if [ -e /etc/ihatemoney/settings.py ]; then
+		# Strip out the no longer used part of the settings
+		python3 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
+		# Rename
+		mv /etc/ihatemoney/settings.py "/etc/ihatemoney/ihatemoney.cfg"
+	fi
 
-    # the static path changed
-    configure_nginx "$domain" "$path"
+	for old_file in "/etc/ihatemoney/ihatemoney.cfg" "/etc/$app/gunicorn.conf.py"; do
+		ynh_backup_if_checksum_is_different --file="$old_file"
+		ynh_delete_file_checksum --file="$old_file"
+	done
+
+	final_path=/var/www/$app
+	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+
+	db_name=ihatemoney
+	db_user=$db_name
+	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 fi
 
-#-------------------------------UPGRADE-------------------------
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir="$final_path"
+
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Upgrading dependencies..." --weight=1
+
+ynh_install_app_dependencies "${pkg_dependencies[@]}"
+
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
+# Init venv
+#=================================================
+ynh_script_progression --message="Configuring the app's installation..." --weight=6
+
+ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+
+# MIGRATION: Upgrade venv
+python3 -m venv --upgrade "$final_path/venv"
+"$final_path/venv/bin/python3" -m pip install --upgrade pip "${pip_dependencies[@]}"
+python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$final_path/venv")
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
+
+# Create a dedicated NGINX config
+## Needs $python_venv_site_packages
+ynh_add_nginx_config "PYTHON_VERSION"
+
+#=================================================
+# Setup gunicorn
+#=================================================
+
+ynh_add_config --template ../conf/gunicorn.conf.py --destination "$final_path/gunicorn.conf.py"
+chmod 600 "$final_path/gunicorn.conf.py"
+
+#=================================================
+# Setup ihatemoney
+#=================================================
+
+# Secret key for cookies encryption.
+secret_key=$(ynh_string_random --length 32)
+mails_sender="no-reply@$domain"
+# Allows to comment some config lines if not using sub path
+sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)"
+
+ynh_add_config --template ../conf/ihatemoney.cfg --destination "$final_path/ihatemoney.cfg"
+chmod 600 "$final_path/ihatemoney.cfg"
 
 
-# Upgrade code and dependencies
-pip_install
+# FIXME: this should be managed by the core in the future
+# Here, as a packager, you may have to tweak the ownerhsip/permissions
+# such that the appropriate users (e.g. maybe www-data) can access
+# files in some cases.
+# But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
+# this will be treated as a security issue.
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
 
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_script_progression --message="Upgrading systemd configuration..." --weight=1
 
-#-----------------------POST-UPGRADE MIGRATIONS-----------------
+# Create a dedicated systemd config
+ynh_add_systemd_config
 
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
 
+yunohost service add $app --description="$app daemon for IHateMoney" --log_type=systemd
 
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-# Python-MySQL is no longer maintained and does not support Py3
-ynh_replace_string "'mysql://" "'mysql+pymysql://" ${ihatemoney_conf_path}
+ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Booting worker" --timeout 30
 
+# line_match isn't enough because ihatemoney may stop if database upgrades
+# FIXME: We need to wait for the db to upgrade and gunicorn to restart!
+sleep 3
 
+#=================================================
+# UPGRADE FAIL2BAN
+#=================================================
+# ynh_script_progression --message="Reconfiguring Fail2Ban..." --weight=1
 
-# MIGRATION: Remove old code (from pre-2.x versions, not using pip)
+# # Create a dedicated Fail2Ban config
+# ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
 
-ynh_secure_remove ${INSTALL_DIR}/src
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
+ynh_systemd_action --service_name=nginx --action=reload
 
+#=================================================
+# END OF SCRIPT
+#=================================================
 
-# MIGRATION: change the static path (from pre-2.x versions, not using pip)
-
-if grep -q /opt/yunohost/ihatemoney/src/ /etc/nginx/conf.d/${domain}.d/ihatemoney.conf
-then
-    # the static path changed
-    configure_nginx "$domain" "$path"
-
-    # Supervisor no longer change its directory to src/ dir
-    configure_supervisor
-    supervisorctl update
-fi
-
-
-# MIGRATION: new-style settings
-
-if [ -e /etc/ihatemoney/settings.py ]; then
-    # Strip out the no longer used part of the settings
-    python3 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
-    # Rename
-    mv /etc/ihatemoney/settings.py ${ihatemoney_conf_path}
-fi
-
-
-
-# MIGRATION: Remove no longer used symlink
-
-# (ihatemoney now read its conf by default from /etc/ihatemoney/ihatemoney.cfg)
-ynh_secure_remove ${INSTALL_DIR}/src/budget/settings.py
-
-
-
-#----------------------------FINALIZATION-----------------------
-
-# Everything went ok ? Let's keep this new venv.
-ynh_secure_remove ${INSTALL_DIR}/venv-old
-
-# Restart backend
-supervisorctl restart budget
-
-# Reload nginx conf
-systemctl reload nginx
+ynh_script_progression --message="Upgrade of $app completed" --last
