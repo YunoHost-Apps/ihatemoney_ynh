@@ -1,3 +1,13 @@
+#=================================================
+# COMMON VARIABLES
+#=================================================
+
+# dependencies used by the app
+pkg_dependencies="python3-dev python3-virtualenv libffi-dev libssl-dev supervisor virtualenv"
+
+
+
+
 ### Constants
 
 supervisor_conf_path="/etc/supervisor/conf.d/ihatemoney.conf"
@@ -6,23 +16,6 @@ ihatemoney_conf_path="/etc/ihatemoney/ihatemoney.cfg"
 INSTALL_DIR="/opt/yunohost/ihatemoney"
 
 
-### Functions
-
-
-install_apt_dependencies() {
-    ynh_install_app_dependencies \
-        python3-dev \
-        python3-virtualenv \
-        libffi-dev \
-        libssl-dev \
-        supervisor \
-        virtualenv
-}
-
-create_unix_user() {
-    mkdir -p /opt/yunohost
-    useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home || ynh_die "User creation failed"
-}
 
 create_system_dirs() {
     install -o ihatemoney -g ihatemoney -m 755 -d \

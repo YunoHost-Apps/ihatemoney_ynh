@@ -15,7 +15,7 @@
         "url": "https://jocelyn.delalande.fr"
     },
     "requirements": {
-        "yunohost": ">= 3.8"
+        "yunohost": ">= 4.2.4"
     },
     "multi_instance": false,
     "services": ["nginx", "mysql", "postfix"],
@@ -24,29 +24,17 @@
             {
                 "name": "domain",
                 "type": "domain",
-                "ask": {
-                    "en": "Choose a domain for ihatemoney",
-                    "fr": "Choisir un domaine pour ihatemoney"
-                },
                 "example": "example.com"
             },
             {
                 "name": "path",
                 "type": "path",
-                "ask": {
-                    "en": "Choose a path for ihatemoney",
-                    "fr": "Choisir un chemin pour ihatemoney"
-                },
                 "example": "/example",
                 "default": "/ihatemoney"
             },
             {
                 "name": "is_public",
                 "type": "boolean",
-                "ask": {
-                    "en": "Is it a public website ? (even if service is public, each project is protected by a password)",
-                    "fr": "Le service est-il public ? (même dans ce cas, chaque projet est protégé par un mot de passe)"
-                },
                 "default": true
             }
         ]
