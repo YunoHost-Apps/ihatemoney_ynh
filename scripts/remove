@@ -1,37 +1,109 @@
 #!/bin/bash
 
-# Source YunoHost helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
 source /usr/share/yunohost/helpers
 
-# supervisord and other Debian dependencies remain installed
-# there is no way to know if they are used by other programs
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_script_progression --message="Loading installation settings..." --weight=1
 
-# Retrieve arguments
-app=ihatemoney
-domain=$(ynh_app_setting_get $app domain)
-db_user=$app
-db_name=$app
+app=$YNH_APP_INSTANCE_NAME
 
-# Stop service
-supervisorctl stop budget
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$db_name
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 
-# Drop database
-ynh_mysql_drop_db $db_name
-ynh_mysql_drop_user $db_user
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# REMOVE SERVICE INTEGRATION IN YUNOHOST
+#=================================================
 
-# Remove src and venv
-ynh_secure_remove /opt/yunohost/ihatemoney
+# Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
+if ynh_exec_warn_less yunohost service status $app >/dev/null
+then
+	ynh_script_progression --message="Removing $app service integration..." --weight=1
+	yunohost service remove $app
+fi
 
-# Remove settings
-ynh_secure_remove /etc/ihatemoney
-ynh_secure_remove /etc/supervisor/conf.d/ihatemoney.conf
-ynh_remove_nginx_config
+#=================================================
+# STOP AND REMOVE SERVICE
+#=================================================
+ynh_script_progression --message="Stopping and removing the systemd service..." --weight=1
 
-# Restart services
-systemctl force-reload supervisor
+# Remove the dedicated systemd config
+ynh_remove_systemd_config
 
-# Remove app dependencies
+#=================================================
+# REMOVE THE MYSQL DATABASE
+#=================================================
+ynh_script_progression --message="Removing the MySQL database..." --weight=1
+
+# Remove a database if it exists, along with the associated user
+ynh_mysql_remove_db --db_user=$db_user --db_name=$db_name
+
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Removing dependencies..." --weight=2
+
+# Remove metapackage and its dependencies
 ynh_remove_app_dependencies
 
-# Delete user
-userdel ihatemoney
+#=================================================
+# REMOVE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Removing app main directory..." --weight=1
+
+# Remove the app directory securely
+ynh_secure_remove --file="$final_path"
+
+#=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Removing NGINX web server configuration..." --weight=1
+
+# Remove the dedicated NGINX config
+ynh_remove_nginx_config
+
+#=================================================
+# REMOVE FAIL2BAN CONFIGURATION
+#=================================================
+# ynh_script_progression --message="Removing Fail2ban configuration..." --weight=1
+
+# # Remove the dedicated Fail2Ban config
+# ynh_remove_fail2ban_config
+
+#=================================================
+# SPECIFIC REMOVE
+#=================================================
+# REMOVE VARIOUS FILES
+#=================================================
+ynh_script_progression --message="Removing configuration files..." --weight=1
+
+# Remove the log files
+ynh_secure_remove --file="/var/log/$app"
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Removing the dedicated system user..." --weight=1
+
+# Delete a system user
+ynh_system_user_delete --username=$app
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Removal of $app completed" --last
