@@ -1,19 +1,21 @@
 # I Hate Money pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Niveau d'intégration](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)  
 [![Installer I Hate Money avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
 *[Read this readme in english.](./README.md)*
 *[Lire ce readme en français.](./README_fr.md)*
 
 > *Ce package vous permet d'installer I Hate Money rapidement et simplement sur un serveur YunoHost.
-Si vous n'avez pas YunoHost, consultez [le guide](https://yunohost.org/#/install) pour apprendre comment l'installer.*
+Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
 
 ## Vue d'ensemble
 
-Une application web de comptes partagés à plusieurs
+Gérez simplement vos dépenses collectives
 
-**Version incluse:** 4.1.5~ynh2
+**Version incluse :** 4.1.5~ynh3
+
+**Démo :** https://ihatemoney.org/demo/
 
 ## Captures d'écran
 
@@ -22,11 +24,7 @@ Une application web de comptes partagés à plusieurs
 
 ## Avertissements / informations importantes
 
-* L'authentification LDAP et HTTP est-elle prise en charge ? **Non**
-
-L'authentification est par projet (et non par utilisateur) donc ce n'est pas intégrable dans le système d'authentification de Yunohost.
-
-L'application peut néanmoins être configurée en public ou non :
+* L'authentification LDAP et login unifié (SSO) n'est pas supportée. Le mécanisme de connexion sur IHateMoney se fait par projet et ne peut donc pas être intégrée dans YunoHost
 
 - **app non publique**:
   - authentification Yunohost requise
@@ -39,11 +37,11 @@ L'application peut néanmoins être configurée en public ou non :
 
 ## Documentations et ressources
 
-* Site officiel de l'app : https://github.com/spiral-project/ihatemoney
-* Documentation officielle de l'admin: https://ihatemoney.readthedocs.org/
-* Dépôt de code officiel de l'app:  https://github.com/spiral-project/ihatemoney
-* Documentation YunoHost pour cette app: https://yunohost.org/app_ihatemoney
-* Signaler un bug: https://github.com/YunoHost-Apps/ihatemoney_ynh/issues
+* Site officiel de l'app : https://github.com/spiral-project/ihatemoney
+* Documentation officielle de l'admin : https://ihatemoney.readthedocs.org/
+* Dépôt de code officiel de l'app : https://github.com/spiral-project/ihatemoney
+* Documentation YunoHost pour cette app : https://yunohost.org/app_ihatemoney
+* Signaler un bug : https://github.com/YunoHost-Apps/ihatemoney_ynh/issues
 
 ## Informations pour les développeurs
 
@@ -52,8 +50,8 @@ Merci de faire vos pull request sur la [branche testing](https://github.com/Yuno
 Pour essayer la branche testing, procédez comme suit.
 ```
 sudo yunohost app install https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing --debug
-or
+ou
 sudo yunohost app upgrade ihatemoney -u https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing --debug
 ```
 
-**Plus d'infos sur le packaging d'applications:** https://yunohost.org/packaging_apps
+**Plus d'infos sur le packaging d'applications :** https://yunohost.org/packaging_apps
