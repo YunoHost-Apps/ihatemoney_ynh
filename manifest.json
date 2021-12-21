@@ -8,7 +8,7 @@
     },
     "url": "http://ihatemoney.org/",
     "version": "4.1.5~ynh3",
-    "license": "Beerware",
+    "license": "MIT",
     "upstream": {
         "license": "MIT",
         "website": "https://github.com/spiral-project/ihatemoney",
