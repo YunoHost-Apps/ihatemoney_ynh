@@ -1,69 +1,56 @@
+#!/bin/bash
+
+#=================================================
+# COMMON VARIABLES
+#=================================================
+
+# dependencies used by the app
+pkg_dependencies=(
+    python3-dev
+    python3-venv
+    libffi-dev
+    libssl-dev
+)
+
+pip_dependencies=(
+    'setuptools>=18.5'
+    'gunicorn>=19.3.0'
+    'PyMySQL>=0.9,<0.10'
+    'SQLAlchemy<1.4'
+    'ihatemoney>=4,<5'
+)
+
 ### Constants
 
-supervisor_conf_path="/etc/supervisor/conf.d/ihatemoney.conf"
-gunicorn_conf_path="/etc/ihatemoney/gunicorn.conf.py"
-ihatemoney_conf_path="/etc/ihatemoney/ihatemoney.cfg"
-INSTALL_DIR="/opt/yunohost/ihatemoney"
+#=================================================
+# PERSONAL HELPERS
+#=================================================
 
+__ynh_python_venv_setup() {
+    local -A args_array=( [d]=venv_dir= [p]=packages= )
+    local venv_dir
+    local packages
+    ynh_handle_getopts_args "$@"
 
-### Functions
+    python3 -m venv --system-site-packages "$venv_dir"
 
-
-install_apt_dependencies() {
-    ynh_install_app_dependencies \
-        python3-dev \
-        python3-virtualenv \
-        libffi-dev \
-        libssl-dev \
-        supervisor \
-        virtualenv
+    IFS=" " read -r -a pip_packages <<< "$packages"
+    "$venv_dir/bin/python3" -m pip install --upgrade pip "${pip_packages[@]}"
 }
 
-create_unix_user() {
-    mkdir -p /opt/yunohost
-    useradd ihatemoney -d /opt/yunohost/ihatemoney/ --create-home || ynh_die "User creation failed"
+__ynh_python_venv_get_site_packages_dir() {
+    local -A args_array=( [d]=venv_dir= )
+    local venv_dir
+    ynh_handle_getopts_args "$@"
+
+    "$venv_dir/bin/python3" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'
 }
 
-create_system_dirs() {
-    install -o ihatemoney -g ihatemoney -m 755 -d \
-         /var/log/ihatemoney \
-         /etc/ihatemoney
-    mkdir -p /opt/yunohost
-}
 
-init_virtualenv () {
-    virtualenv /opt/yunohost/ihatemoney/venv --python /usr/bin/python3
+#=================================================
+# EXPERIMENTAL HELPERS
+#=================================================
 
-    # PyMySQL → cryptography → setuptools>=18.5
-    # Required on Jessie, Stretch has setuptools>=18.5
-    /opt/yunohost/ihatemoney/venv/bin/pip install 'setuptools>=18.5'
-}
-
-pip_install () {
-    # SQLAlchemy requirement is workaround https://github.com/pallets/flask-sqlalchemy/issues/910
-    # Might be removed later when IHM dependency set will no longer prevent working installation.
-    /opt/yunohost/ihatemoney/venv/bin/pip install --upgrade \
-     'gunicorn>=19.3.0' \
-     'PyMySQL>=0.9,<0.10' \
-     'ihatemoney>=4,<5' \
-     'SQLAlchemy<1.4' \
-
-}
-
-configure_nginx () {
-    local domain=$1
-    local path=$2
-    local python_version="$(readlink /usr/bin/python3|sed s/.*python//)"
-
-    ynh_replace_string "PATHTOCHANGE"   "$path"           ../conf/nginx.conf
-    ynh_replace_string "PYTHON_VERSION" "$python_version" ../conf/nginx.conf
-    # Fix double-slash for domain-root install
-    ynh_replace_string "location //"    "location /"      ../conf/nginx.conf
-    install -o root -g root -m644 \
-         ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/ihatemoney.conf
-}
-
-configure_supervisor () {
-    install -o root -g root -m 644 \
-         ../conf/supervisord.conf /etc/supervisor/conf.d/ihatemoney.conf
-}
+#=================================================
+# FUTURE OFFICIAL HELPERS
+#=================================================

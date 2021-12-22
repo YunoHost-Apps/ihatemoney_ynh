@@ -1,0 +1,15 @@
+[Unit]
+Description=I hate money
+Requires=network.target mysql.service
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=__APP__
+Environment=IHATEMONEY_SETTINGS_FILE_PATH=__FINALPATH__/ihatemoney.cfg
+ExecStart=__FINALPATH__/venv/bin/gunicorn -c __FINALPATH__/gunicorn.conf.py ihatemoney.wsgi:application
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

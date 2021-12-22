@@ -1,88 +1,191 @@
 #!/bin/bash
 
-# Source YunoHost helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source _common.sh
 source /usr/share/yunohost/helpers
 
-# Retrieve arguments
-domain=$YNH_APP_ARG_DOMAIN
-path=$YNH_APP_ARG_PATH
-is_public=$YNH_APP_ARG_IS_PUBLIC
-app=ihatemoney
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
 
-# Database settings
-db_pwd=$(ynh_string_random)
-db_name=$app
-db_user=$app
-
-# Constant arguments
-secret_key=$(ynh_string_random --length 32)
-mails_sender="no-reply@${domain}"
-
-
+# Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
-ynh_webpath_register $app $domain $path
+#=================================================
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
+#=================================================
 
-# Configure database
-ynh_mysql_create_db "$db_name" "$db_user" "$db_pwd"
+domain=$YNH_APP_ARG_DOMAIN
+path_url=$YNH_APP_ARG_PATH
+is_public=$YNH_APP_ARG_IS_PUBLIC
+app=$YNH_APP_INSTANCE_NAME
 
-# Save app settings
-ynh_app_setting_set "$app" mysqlpwd "$db_pwd"
-ynh_app_setting_set "$app" is_public "$is_public"
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+#=================================================
+ynh_script_progression --message="Validating installation parameters..." --weight=1
 
-install_apt_dependencies
+final_path=/var/www/$app
+test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
-create_unix_user
+# Register (book) web path
+ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
-# Prepare venv
-init_virtualenv
-pip_install
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
+ynh_script_progression --message="Storing installation settings..." --weight=1
 
-create_system_dirs
+ynh_app_setting_set --app=$app --key=domain --value=$domain
+ynh_app_setting_set --app=$app --key=path --value=$path_url
 
-# Configure gunicorn
-install -o ihatemoney -g ihatemoney -m 644 \
-     ../conf/gunicorn.conf.py /etc/ihatemoney/gunicorn.conf.py
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Installing dependencies..." --weight=3
 
-# Configure supervisor
-configure_supervisor
-# In case it was already installed before,
-# so that it picks /etc/supervisor/conf.d/ihatemoney.conf:
-supervisorctl update
-yunohost service add supervisor
+ynh_install_app_dependencies "${pkg_dependencies[@]}"
 
-# Configure ihatemoney
-ynh_replace_string "MY_SECRET_KEY" "$secret_key"   ../conf/ihatemoney.cfg
-ynh_replace_string "MY_EMAIL"      "$mails_sender" ../conf/ihatemoney.cfg
-ynh_replace_string "MY_MYSQL_PW"   "$db_pwd"       ../conf/ihatemoney.cfg
-ynh_replace_string "MY_PATH"       "$path"         ../conf/ihatemoney.cfg
-# Remove the conf directive if served at root
-sed -i "/APPLICATION_ROOT='\/'/d" ../conf/ihatemoney.cfg
-install -o ihatemoney -g ihatemoney -m 640 \
-     ../conf/ihatemoney.cfg /etc/ihatemoney/ihatemoney.cfg
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..." --weight=1
 
-# If app is public, add url to SSOWat conf as skipped_uris
-if [[ "$is_public" -ne 0 ]];
-then
-    ynh_app_setting_set $app unprotected_uris "/"
-fi
+# Create a system user
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
-# Configure Nginx
-configure_nginx "$domain" "$path"
+#=================================================
+# CREATE A MYSQL DATABASE
+#=================================================
+ynh_script_progression --message="Creating a MySQL database..." --weight=1
 
-# Start backend
-systemctl start supervisor
+db_name=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$db_name
+ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
+# defines $db_pwd and setting mysqlpwd
 
-# Wait that gunicorn is ready to consider the install finished, that is to
-# avoid HTTP 502 right after installation
-for i in `seq 1 120`
-do
-    test -S /tmp/budget.gunicorn.sock && break
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+# Init venv
+#=================================================
+
+ynh_script_progression --message="Configuring the app's installation..." --weight=6
+
+ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+
+__ynh_python_venv_setup --venv_dir="$final_path/venv" --packages "${pip_dependencies[*]}"
+python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$final_path/venv")
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Configuring NGINX web server..." --weight=1
+
+# Create a dedicated NGINX config
+## Needs $python_venv_site_packages
+ynh_add_nginx_config
+
+#=================================================
+# Setup gunicorn
+#=================================================
+
+ynh_add_config --template ../conf/gunicorn.conf.py --destination "$final_path/gunicorn.conf.py"
+chmod 644 "$final_path/gunicorn.conf.py"
+
+#=================================================
+# Setup ihatemoney
+#=================================================
+
+# Secret key for cookies encryption.
+secret_key=$(ynh_string_random --length 32)
+mails_sender="no-reply@$domain"
+# Allows to comment some config lines if not using sub path
+sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)"
+
+ynh_add_config --template ../conf/ihatemoney.cfg --destination "$final_path/ihatemoney.cfg"
+chmod 640 "$final_path/ihatemoney.cfg"
+
+
+# FIXME: this should be managed by the core in the future
+# Here, as a packager, you may have to tweak the ownerhsip/permissions
+# such that the appropriate users (e.g. maybe www-data) can access
+# files in some cases.
+# But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
+# this will be treated as a security issue.
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_script_progression --message="Configuring a systemd service..." --weight=1
+
+# Create a dedicated systemd config
+ynh_add_systemd_config
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
+
+yunohost service add $app --description="$app daemon for IHateMoney" --log=systemd
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=1
+
+# Start a systemd service
+ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Booting worker" --timeout 30
+
+# line_match isn't enough because ihatemoney may stop if database upgrades
+for _ in {1..20}; do
+	test -S /tmp/budget.gunicorn_$app.sock && break
 	sleep 1
 done
 
-# If socket not ready after 2 minutes waiting, ihatemoney will not work.
-test -S /tmp/budget.gunicorn.sock || ynh_die
+#=================================================
+# SETUP FAIL2BAN
+#=================================================
+# ynh_script_progression --message="Configuring Fail2Ban..." --weight=1
 
-systemctl reload nginx
+# Create a dedicated Fail2Ban config
+# ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+ynh_script_progression --message="Configuring permissions..." --weight=1
+
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# Everyone can access the app.
+	# The "main" permission is automatically created before the install script.
+	ynh_permission_update --permission="main" --add="visitors"
+fi
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Installation of $app completed" --last
