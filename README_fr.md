@@ -1,6 +1,6 @@
 # I Hate Money pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)  
+[![Niveau d'intégration](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
 [![Installer I Hate Money avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
 *[Read this readme in english.](./README.md)*
@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Gérez simplement vos dépenses collectives
 
-**Version incluse :** 4.1.5~ynh3
+**Version incluse :** 5.1.1~ynh1
 
 **Démo :** https://ihatemoney.org/demo/
 

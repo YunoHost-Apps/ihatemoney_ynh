@@ -7,7 +7,7 @@
         "fr": "Gérez simplement vos dépenses collectives"
     },
     "url": "http://ihatemoney.org/",
-    "version": "4.1.5~ynh3",
+    "version": "5.1.1~ynh1",
     "license": "MIT",
     "upstream": {
         "license": "MIT",

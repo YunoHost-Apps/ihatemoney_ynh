@@ -13,11 +13,9 @@ pkg_dependencies=(
 )
 
 pip_dependencies=(
-    'setuptools>=18.5'
-    'gunicorn>=19.3.0'
-    'PyMySQL>=0.9,<0.10'
-    'SQLAlchemy<1.4'
-    'ihatemoney>=4,<5'
+    'ihatemoney==5.1.1'
+    'gunicorn>=20.0'
+    'PyMySQL>=0.9,<1.1'
 )
 
 ### Constants
