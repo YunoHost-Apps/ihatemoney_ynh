@@ -114,6 +114,9 @@ sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)
 ynh_add_config --template ../conf/ihatemoney.cfg --destination "$final_path/ihatemoney.cfg"
 chmod 640 "$final_path/ihatemoney.cfg"
 
+# Upstream issue : https://github.com/spiral-project/ihatemoney/issues/973
+src_dir=$("$final_path/venv/bin/python3" -c "import ihatemoney ; print(ihatemoney.__file__)")
+patch -p1 -d "$(dirname "$src_dir")" < "../conf/ihatemoney_showcase.patch"
 
 # FIXME: this should be managed by the core in the future
 # Here, as a packager, you may have to tweak the ownerhsip/permissions
