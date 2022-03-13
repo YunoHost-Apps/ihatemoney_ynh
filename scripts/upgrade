@@ -26,13 +26,8 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 #=================================================
 # CHECK VERSION
 #=================================================
+ynh_script_progression --message="Checking version..."
 
-### This helper will compare the version of the currently installed app and the version of the upstream package.
-### $upgrade_type can have 2 different values
-### - UPGRADE_APP if the upstream app version has changed
-### - UPGRADE_PACKAGE if only the YunoHost package has changed
-### ynh_check_app_version_changed will stop the upgrade if the app is up to date.
-### UPGRADE_APP should be used to upgrade the core app only if there's an upgrade to do.
 upgrade_type=$(ynh_check_app_version_changed)
 
 if ynh_compare_current_package_version --comparison le --version "4.1.5~ynh2"; then
@@ -49,6 +44,7 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
+	ynh_clean_check_starting
 	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
@@ -163,16 +159,9 @@ mails_sender="no-reply@$domain"
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
-ynh_add_config --template ../conf/ihatemoney.cfg --destination "$final_path/ihatemoney.cfg"
+ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$final_path/ihatemoney.cfg"
 chmod 600 "$final_path/ihatemoney.cfg"
 
-
-# FIXME: this should be managed by the core in the future
-# Here, as a packager, you may have to tweak the ownerhsip/permissions
-# such that the appropriate users (e.g. maybe www-data) can access
-# files in some cases.
-# But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
-# this will be treated as a security issue.
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
@@ -204,14 +193,6 @@ ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --l
 # line_match isn't enough because ihatemoney may stop if database upgrades
 # FIXME: We need to wait for the db to upgrade and gunicorn to restart!
 sleep 3
-
-#=================================================
-# UPGRADE FAIL2BAN
-#=================================================
-# ynh_script_progression --message="Reconfiguring Fail2Ban..." --weight=1
-
-# # Create a dedicated Fail2Ban config
-# ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
 
 #=================================================
 # RELOAD NGINX

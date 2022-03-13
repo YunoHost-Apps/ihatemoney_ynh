@@ -6,9 +6,8 @@
         "en": "Simple app to manage your collective expenses",
         "fr": "Gérez simplement vos dépenses collectives"
     },
-    "url": "http://ihatemoney.org/",
     "version": "4.1.5~ynh3",
-    "license": "MIT",
+    "url": "http://ihatemoney.org/",
     "upstream": {
         "license": "MIT",
         "website": "https://github.com/spiral-project/ihatemoney",
@@ -16,16 +15,21 @@
         "code": "https://github.com/spiral-project/ihatemoney",
         "demo": "https://ihatemoney.org/demo/"
     },
+    "license": "MIT",
     "maintainer": {
         "name": "Jocelyn Delalande",
         "email": "jocelyn@crapouillou.net",
         "url": "https://jocelyn.delalande.fr"
     },
     "requirements": {
-        "yunohost": ">= 4.1.0"
+        "yunohost": ">= 4.3.0"
     },
     "multi_instance": true,
-    "services": ["nginx", "mysql", "postfix"],
+    "services": [
+    	"nginx",
+    	"postfix",
+    	"mysql"
+    ],
     "arguments": {
         "install" : [
             {
