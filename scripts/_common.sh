@@ -17,7 +17,8 @@ pip_dependencies=(
     'gunicorn>=19.3.0'
     'PyMySQL>=0.9,<0.10'
     'SQLAlchemy<1.4'
-    'ihatemoney>=4,<5'
+    'ihatemoney==4.1.5'
+    'markupsafe==2.0.1'
 )
 
 ### Constants

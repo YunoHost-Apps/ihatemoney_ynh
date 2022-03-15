@@ -51,14 +51,6 @@ ynh_script_progression --message="Removing the MySQL database..." --weight=1
 ynh_mysql_remove_db --db_user=$db_user --db_name=$db_name
 
 #=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing dependencies..." --weight=2
-
-# Remove metapackage and its dependencies
-ynh_remove_app_dependencies
-
-#=================================================
 # REMOVE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Removing app main directory..." --weight=1
@@ -75,12 +67,12 @@ ynh_script_progression --message="Removing NGINX web server configuration..." --
 ynh_remove_nginx_config
 
 #=================================================
-# REMOVE FAIL2BAN CONFIGURATION
+# REMOVE DEPENDENCIES
 #=================================================
-# ynh_script_progression --message="Removing Fail2ban configuration..." --weight=1
+ynh_script_progression --message="Removing dependencies..." --weight=2
 
-# # Remove the dedicated Fail2Ban config
-# ynh_remove_fail2ban_config
+# Remove metapackage and its dependencies
+ynh_remove_app_dependencies
 
 #=================================================
 # SPECIFIC REMOVE
