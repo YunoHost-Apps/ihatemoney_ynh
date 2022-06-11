@@ -80,7 +80,6 @@ ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
 #=================================================
 # Init venv
 #=================================================
-
 ynh_script_progression --message="Configuring the app's installation..." --weight=6
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
