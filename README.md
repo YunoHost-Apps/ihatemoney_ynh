@@ -40,6 +40,8 @@ I hate money is a web application made to ease shared budget management. It keep
   - per-project identifiers required
   - any visitor can create a new project.
 
+* During upgrade from version 4.1.5~ynh3, a new admin password is generated and sent to the root
+
 ## Documentation and resources
 
 * Official app website: <https://github.com/spiral-project/ihatemoney>
