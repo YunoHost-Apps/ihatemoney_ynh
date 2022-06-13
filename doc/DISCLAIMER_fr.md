@@ -8,3 +8,5 @@
   - authentification Yunohost non requise
   - identifiants de projets requis
   - Tout visiteur peut créer un nouveau projet.
+
+* Lors de la mise à jour de la version 4.1.5~ynh3, un nouveau mot de passe administrateur est généré et envoyé à root.

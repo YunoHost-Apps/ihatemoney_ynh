@@ -7,6 +7,7 @@
 #=================================================
 
 source _common.sh
+source ynh_send_readme_to_admin__2
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -114,7 +115,7 @@ fi
 
 # If hashed_password doesn't exist, create it
 if [ -z "$hashed_password" ]; then
-	password=$(ynh_string_random --length=8)
+	password=$(ynh_string_random --length=16)
 	#run source in a 'sub shell'
 	(
 		set +o nounset
@@ -126,7 +127,7 @@ if [ -z "$hashed_password" ]; then
 	hashed_password=$(cat $final_path/key.txt)
 	ynh_secure_remove --file="$final_path/key.txt"
 	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
-	ynh_script_progression --message="A new password for $app has been generated, it's $password ..."
+	ynh_send_readme_to_admin --app_message="../conf/upgrade.msg" --type="upgrade"
 fi
 
 #=================================================

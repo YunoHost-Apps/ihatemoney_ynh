@@ -8,3 +8,5 @@
   - no yunohost login required
   - per-project identifiers required
   - any visitor can create a new project.
+
+* During upgrade from version 4.1.5~ynh3, a new admin password is generated and sent to the root
