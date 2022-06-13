@@ -23,6 +23,8 @@ app=$YNH_APP_INSTANCE_NAME
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$db_name
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
+secret_key=$(ynh_app_setting_get --app=$app --key=secret_key)
+hashed_password=$(ynh_app_setting_get --app=$app --key=hashed_password)
 
 #=================================================
 # LOAD SETTINGS
@@ -115,18 +117,12 @@ fi
 path_url="$new_path"
 domain="$new_domain"
 
-# Secret key for cookies encryption.
-secret_key=$(ynh_string_random --length 32)
-mails_sender="no-reply@$domain"
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
-ynh_backup_if_checksum_is_different --file="$final_path/ihatemoney.cfg"
-ynh_add_config --template ../conf/ihatemoney.cfg --destination "$final_path/ihatemoney.cfg"
-
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$final_path/ihatemoney.cfg"
+chmod 640 "$final_path/ihatemoney.cfg"
+chown $app:$app "$final_path/ihatemoney.cfg"
 
 #=================================================
 # GENERIC FINALISATION

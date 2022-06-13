@@ -108,7 +108,7 @@ yunohost service add $app --description="$app daemon for IHateMoney" --log=syste
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Booting worker" --timeout 30
+ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Listening at"
 
 # line_match isn't enough because ihatemoney may stop if database upgrades
 for _ in {1..20}; do

@@ -26,7 +26,12 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
+password=$YNH_APP_ARG_PASSWORD
+
 app=$YNH_APP_INSTANCE_NAME
+
+# Secret key for cookies encryption.
+secret_key=$(ynh_string_random --length=32)
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -46,6 +51,7 @@ ynh_script_progression --message="Storing installation settings..." --weight=1
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -73,19 +79,23 @@ db_name=$(ynh_sanitize_dbid --db_name=$app)
 db_user=$db_name
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
-# defines $db_pwd and setting mysqlpwd
+db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# Init venv
+# BUILD VENV
 #=================================================
-ynh_script_progression --message="Configuring the app's installation..." --weight=6
+ynh_script_progression --message="Building venv..." --weight=6
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 
 __ynh_python_venv_setup --venv_dir="$final_path/venv" --packages "${pip_dependencies[*]}"
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$final_path/venv")
+
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -97,35 +107,32 @@ ynh_script_progression --message="Configuring NGINX web server..." --weight=1
 ynh_add_nginx_config
 
 #=================================================
-# Setup gunicorn
+# ADD A CONFIGURATION
 #=================================================
+ynh_script_progression --message="Adding a configuration file..."
 
-ynh_add_config --template ../conf/gunicorn.conf.py --destination "$final_path/gunicorn.conf.py"
-chmod 644 "$final_path/gunicorn.conf.py"
+#run source in a 'sub shell'
+(
+	set +o nounset
+	source "${final_path}/venv/bin/activate"
+	set -o nounset
+	python3 ../conf/hash_generator.py $password > ${final_path}/key.txt
+)
 
-#=================================================
-# Setup ihatemoney
-#=================================================
+hashed_password=$(cat $final_path/key.txt)
+ynh_secure_remove --file="$final_path/key.txt"
+ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 
-# Secret key for cookies encryption.
-secret_key=$(ynh_string_random --length 32)
-mails_sender="no-reply@$domain"
+ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$final_path/gunicorn.conf.py"
+chmod 640 "$final_path/gunicorn.conf.py"
+chown $app:$app "$final_path/gunicorn.conf.py"
+
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
-ynh_add_config --template ../conf/ihatemoney.cfg --destination "$final_path/ihatemoney.cfg"
+ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$final_path/ihatemoney.cfg"
 chmod 640 "$final_path/ihatemoney.cfg"
-
-
-# FIXME: this should be managed by the core in the future
-# Here, as a packager, you may have to tweak the ownerhsip/permissions
-# such that the appropriate users (e.g. maybe www-data) can access
-# files in some cases.
-# But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
-# this will be treated as a security issue.
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chown $app:$app "$final_path/ihatemoney.cfg"
 
 #=================================================
 # SETUP SYSTEMD
@@ -150,7 +157,7 @@ yunohost service add $app --description="$app daemon for IHateMoney" --log=syste
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
 # Start a systemd service
-ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Booting worker" --timeout 30
+ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Listening at"
 
 # line_match isn't enough because ihatemoney may stop if database upgrades
 for _ in {1..20}; do
