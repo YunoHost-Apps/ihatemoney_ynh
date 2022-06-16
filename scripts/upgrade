@@ -114,7 +114,7 @@ if [ -z "$secret_key" ]; then
 fi
 
 # If hashed_password doesn't exist, create it
-if [ -z "$hashed_password" ]; then
+if [ -z "$hashed_password" ] && [ test -f "${final_path}/venv/bin/activate" ]; then
 	password=$(ynh_string_random --length=16)
 	#run source in a 'sub shell'
 	(
