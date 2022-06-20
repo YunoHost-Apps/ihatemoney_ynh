@@ -44,13 +44,6 @@ test ! -d $final_path \
 #=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Restoring the NGINX web server configuration..." --weight=1
-
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Recreating the dedicated system user..." --weight=1
@@ -78,6 +71,13 @@ ynh_script_progression --message="Reinstalling dependencies..." --weight=4
 
 # Define and install dependencies
 ynh_install_app_dependencies "${pkg_dependencies[@]}"
+
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring the NGINX web server configuration..." --weight=1
+
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # RESTORE THE MYSQL DATABASE
@@ -108,7 +108,7 @@ yunohost service add $app --description="$app daemon for IHateMoney" --log=syste
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Booting worker" --timeout 30
+ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Listening at"
 
 # line_match isn't enough because ihatemoney may stop if database upgrades
 for _ in {1..20}; do

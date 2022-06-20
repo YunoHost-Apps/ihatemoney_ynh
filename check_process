@@ -3,6 +3,7 @@
 		domain="domain.tld"
 		path="/path"
 		is_public=1
+		password="1Strong-Password"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=1
@@ -11,7 +12,10 @@
 		setup_private=1
 		setup_public=1
 		upgrade=1
-		upgrade=1	from_commit=0f904d99367cfec27ec5fe303941fbf1124a7571
+		# Before refactoring yunohost package
+		#upgrade=1	from_commit=0f904d99367cfec27ec5fe303941fbf1124a7571
+		# 4.1.5~ynh3
+		upgrade=1	from_commit=17bde85b095eddeeb279ef96f5697f92a59380db
 		backup_restore=1
 		multi_instance=1
 		port_already_use=0
@@ -19,6 +23,3 @@
 ;;; Options
 Email=
 Notification=none
-;;; Upgrade options
-	; commit=0f904d99367cfec27ec5fe303941fbf1124a7571
-		name=Before refactoring yunohost package

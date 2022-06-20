@@ -7,6 +7,7 @@
 #=================================================
 
 source _common.sh
+source ynh_send_readme_to_admin__2
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -22,6 +23,8 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$db_name
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
+secret_key=$(ynh_app_setting_get --app=$app --key=secret_key)
+hashed_password=$(ynh_app_setting_get --app=$app --key=hashed_password)
 
 #=================================================
 # CHECK VERSION
@@ -104,6 +107,29 @@ if [[ "$upgrade_from_opt" == "true" ]]; then
 	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 fi
 
+# If secret_key doesn't exist, create it
+if [ -z "$secret_key" ]; then
+	secret_key=$(ynh_string_random --length=32)
+	ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
+fi
+
+# If hashed_password doesn't exist, create it
+if [ -z "$hashed_password" ] && [ test -f "${final_path}/venv/bin/activate" ]; then
+	password=$(ynh_string_random --length=16)
+	#run source in a 'sub shell'
+	(
+		set +o nounset
+		source "${final_path}/venv/bin/activate"
+		set -o nounset
+		python3 ../conf/hash_generator.py $password > ${final_path}/key.txt
+	)
+
+	hashed_password=$(cat $final_path/key.txt)
+	ynh_secure_remove --file="$final_path/key.txt"
+	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
+	ynh_send_readme_to_admin --app_message="../conf/upgrade.msg" --type="upgrade"
+fi
+
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
@@ -122,16 +148,17 @@ ynh_install_app_dependencies "${pkg_dependencies[@]}"
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# Init venv
+# BUILD VENV
 #=================================================
-ynh_script_progression --message="Configuring the app's installation..." --weight=6
+ynh_script_progression --message="Building venv..." --weight=6
 
-ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-
-# MIGRATION: Upgrade venv
-python3 -m venv --upgrade "$final_path/venv"
-"$final_path/venv/bin/python3" -m pip install --upgrade pip "${pip_dependencies[@]}"
+ynh_secure_remove --file="$final_path/venv"
+__ynh_python_venv_setup --venv_dir="$final_path/venv" --packages "${pip_dependencies[*]}"
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$final_path/venv")
+
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -140,31 +167,23 @@ ynh_script_progression --message="Upgrading NGINX web server configuration..." -
 
 # Create a dedicated NGINX config
 ## Needs $python_venv_site_packages
-ynh_add_nginx_config "PYTHON_VERSION"
+ynh_add_nginx_config
 
 #=================================================
-# Setup gunicorn
+# UPDATE A CONFIG FILE
 #=================================================
+ynh_script_progression --message="Updating a configuration file..."
 
-ynh_add_config --template ../conf/gunicorn.conf.py --destination "$final_path/gunicorn.conf.py"
-chmod 600 "$final_path/gunicorn.conf.py"
+ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$final_path/gunicorn.conf.py"
+chmod 640 "$final_path/gunicorn.conf.py"
+chown $app:$app "$final_path/gunicorn.conf.py"
 
-#=================================================
-# Setup ihatemoney
-#=================================================
-
-# Secret key for cookies encryption.
-secret_key=$(ynh_string_random --length 32)
-mails_sender="no-reply@$domain"
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
 ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$final_path/ihatemoney.cfg"
-chmod 600 "$final_path/ihatemoney.cfg"
-
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod 640 "$final_path/ihatemoney.cfg"
+chown $app:$app "$final_path/ihatemoney.cfg"
 
 #=================================================
 # SETUP SYSTEMD
@@ -188,11 +207,13 @@ yunohost service add $app --description="$app daemon for IHateMoney" --log=syste
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Booting worker" --timeout 30
+ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="Listening at"
 
 # line_match isn't enough because ihatemoney may stop if database upgrades
-# FIXME: We need to wait for the db to upgrade and gunicorn to restart!
-sleep 3
+for _ in {1..20}; do
+	test -S /tmp/budget.gunicorn_$app.sock && break
+	sleep 1
+done
 
 #=================================================
 # RELOAD NGINX
