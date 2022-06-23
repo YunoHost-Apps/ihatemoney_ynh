@@ -5,7 +5,7 @@ It shall NOT be edited by hand.
 
 # I Hate Money for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![Working status](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)  
 [![Install I Hate Money with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -18,14 +18,14 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 I hate money is a web application made to ease shared budget management. It keeps track of who bought what, when, and for whom; and helps to settle the bills.
 
 
-**Shipped version:** 4.1.5~ynh3
+**Shipped version:** 5.2.0~ynh1
 
 **Demo:** https://ihatemoney.org/demo/
 
 ## Screenshots
 
-![](./doc/screenshots/screenshot_1_global.webp)
-![](./doc/screenshots/screenshot_2_new_operation.webp)
+![Screenshot of I Hate Money](./doc/screenshots/screenshot_1_global.webp)
+![Screenshot of I Hate Money](./doc/screenshots/screenshot_2_new_operation.webp)
 
 ## Disclaimers / important information
 
@@ -40,23 +40,26 @@ I hate money is a web application made to ease shared budget management. It keep
   - per-project identifiers required
   - any visitor can create a new project.
 
+* During upgrade from version 4.1.5~ynh3, a new admin password is generated and sent to the root
+
 ## Documentation and resources
 
-* Official app website: https://github.com/spiral-project/ihatemoney
-* Official admin documentation: https://ihatemoney.readthedocs.org/
-* Upstream app code repository: https://github.com/spiral-project/ihatemoney
-* YunoHost documentation for this app: https://yunohost.org/app_ihatemoney
-* Report a bug: https://github.com/YunoHost-Apps/ihatemoney_ynh/issues
+* Official app website: <https://github.com/spiral-project/ihatemoney>
+* Official admin documentation: <https://ihatemoney.readthedocs.org/>
+* Upstream app code repository: <https://github.com/spiral-project/ihatemoney>
+* YunoHost documentation for this app: <https://yunohost.org/app_ihatemoney>
+* Report a bug: <https://github.com/YunoHost-Apps/ihatemoney_ynh/issues>
 
 ## Developer info
 
 Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
-```
+
+``` bash
 sudo yunohost app install https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing --debug
 or
 sudo yunohost app upgrade ihatemoney -u https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing --debug
 ```
 
-**More info regarding app packaging:** https://yunohost.org/packaging_apps
+**More info regarding app packaging:** <https://yunohost.org/packaging_apps>
