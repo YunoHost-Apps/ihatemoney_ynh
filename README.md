@@ -18,7 +18,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 I hate money is a web application made to ease shared budget management. It keeps track of who bought what, when, and for whom; and helps to settle the bills.
 
 
-**Shipped version:** 5.2.0~ynh1
+**Shipped version:** 5.2.0~ynh2
 
 **Demo:** https://ihatemoney.org/demo/
 
@@ -44,7 +44,7 @@ I hate money is a web application made to ease shared budget management. It keep
 
 ## Documentation and resources
 
-* Official app website: <https://github.com/spiral-project/ihatemoney>
+* Official app website: <http://ihatemoney.org/>
 * Official admin documentation: <https://ihatemoney.readthedocs.org/>
 * Upstream app code repository: <https://github.com/spiral-project/ihatemoney>
 * YunoHost documentation for this app: <https://yunohost.org/app_ihatemoney>
