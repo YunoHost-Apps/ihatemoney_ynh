@@ -18,7 +18,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 I hate money est une application web conçue pour faciliter la gestion partagée du budget. Elle permet de savoir qui a acheté quoi, quand et pour qui, et aide à régler les factures.
 
 
-**Version incluse :** 5.2.0~ynh1
+**Version incluse :** 5.2.0~ynh2
 
 **Démo :** https://ihatemoney.org/demo/
 
