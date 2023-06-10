@@ -13,18 +13,18 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=1
+#REMOVEME? ynh_script_progression --message="Loading installation settings..." --weight=1
 
-app=$YNH_APP_INSTANCE_NAME
+#REMOVEME? app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$db_name
-db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
-secret_key=$(ynh_app_setting_get --app=$app --key=secret_key)
-hashed_password=$(ynh_app_setting_get --app=$app --key=hashed_password)
+#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
+#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
+#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
+#REMOVEME? db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+#REMOVEME? db_user=$db_name
+#REMOVEME? db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
+#REMOVEME? secret_key=$(ynh_app_setting_get --app=$app --key=secret_key)
+#REMOVEME? hashed_password=$(ynh_app_setting_get --app=$app --key=hashed_password)
 
 #=================================================
 # CHECK VERSION
@@ -42,17 +42,17 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=3
+#REMOVEME? ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=3
 
 # Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
+#REMOVEME? ynh_backup_before_upgrade
+#REMOVEME? ynh_clean_setup () {
 	ynh_clean_check_starting
 	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
+#REMOVEME? 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -72,8 +72,8 @@ fi
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
 # Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
+#REMOVEME? if ynh_legacy_permissions_exists; then
+#REMOVEME? 	ynh_legacy_permissions_delete_all
 
 	ynh_app_setting_delete --app=$app --key=is_public
 fi
@@ -98,13 +98,13 @@ if [[ "$upgrade_from_opt" == "true" ]]; then
 		ynh_backup_if_checksum_is_different --file="$old_file"
 		ynh_delete_file_checksum --file="$old_file"
 	done
-
-	final_path=/var/www/$app
-	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+#REMOVEME? 
+	install_dir=/var/www/$app
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
 
 	db_name=ihatemoney
 	db_user=$db_name
-	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 fi
 
 # If secret_key doesn't exist, create it
@@ -114,19 +114,19 @@ if [ -z "$secret_key" ]; then
 fi
 
 # If hashed_password doesn't exist, create it
-if [ -z "$hashed_password" ] && [ test -f "${final_path}/venv/bin/activate" ]; then
+if [ -z "$hashed_password" ] && [ test -f "${install_dir}/venv/bin/activate" ]; then
 	password=$(ynh_string_random --length=16)
 	#run source in a 'sub shell'
 	(
 		set +o nounset
-		source "${final_path}/venv/bin/activate"
+		source "${install_dir}/venv/bin/activate"
 		set -o nounset
-		python3 ../conf/hash_generator.py $password > ${final_path}/key.txt
+		python3 ../conf/hash_generator.py $password > ${install_dir}/key.txt
 	)
 
-	hashed_password=$(cat $final_path/key.txt)
-	ynh_secure_remove --file="$final_path/key.txt"
-	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
+	hashed_password=$(cat $install_dir/key.txt)
+#REMOVEME? 	ynh_secure_remove --file="$install_dir/key.txt"
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 	ynh_send_readme_to_admin --app_message="../conf/upgrade.msg" --type="upgrade"
 fi
 
@@ -140,17 +140,17 @@ fi
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
+#REMOVEME? ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=1
+#REMOVEME? ynh_script_progression --message="Upgrading dependencies..." --weight=1
 
-ynh_install_app_dependencies "${pkg_dependencies[@]}"
+#REMOVEME? ynh_install_app_dependencies "${pkg_dependencies[@]}"
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -159,13 +159,13 @@ ynh_install_app_dependencies "${pkg_dependencies[@]}"
 #=================================================
 ynh_script_progression --message="Building venv..." --weight=6
 
-ynh_secure_remove --file="$final_path/venv"
-__ynh_python_venv_setup --venv_dir="$final_path/venv" --packages "${pip_dependencies[*]}"
-python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$final_path/venv")
+#REMOVEME? ynh_secure_remove --file="$install_dir/venv"
+__ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_dependencies[*]}"
+python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install_dir/venv")
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -181,16 +181,16 @@ ynh_add_nginx_config
 #=================================================
 ynh_script_progression --message="Updating a configuration file..."
 
-ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$final_path/gunicorn.conf.py"
-chmod 640 "$final_path/gunicorn.conf.py"
-chown $app:$app "$final_path/gunicorn.conf.py"
+ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
+chmod 640 "$install_dir/gunicorn.conf.py"
+chown $app:$app "$install_dir/gunicorn.conf.py"
 
 # Allows to comment some config lines if not using sub path
-sub_path_only="$(if [[ "$path_url" == "/" ]]; then echo '# ' ; else echo ''; fi)"
+sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
-ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$final_path/ihatemoney.cfg"
-chmod 640 "$final_path/ihatemoney.cfg"
-chown $app:$app "$final_path/ihatemoney.cfg"
+ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
+chmod 640 "$install_dir/ihatemoney.cfg"
+chown $app:$app "$install_dir/ihatemoney.cfg"
 
 #=================================================
 # SETUP SYSTEMD
@@ -225,9 +225,9 @@ done
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
+#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
-ynh_systemd_action --service_name=nginx --action=reload
+#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
