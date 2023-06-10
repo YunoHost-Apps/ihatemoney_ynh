@@ -10,11 +10,18 @@ pip_dependencies=(
     'PyMySQL>=0.9,<1.1'
 )
 
-### Constants
 
 #=================================================
 # PERSONAL HELPERS
 #=================================================
+
+wait_gunicorn_start() {
+    # line_match isn't enough because ihatemoney may stop if database upgrades
+    for _ in {1..20}; do
+        test -S /tmp/budget.gunicorn_$app.sock && break
+        sleep 1
+    done
+}
 
 __ynh_python_venv_setup() {
     local -A args_array=( [d]=venv_dir= [p]=packages= )
