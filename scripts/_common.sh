@@ -4,15 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 
-# dependencies used by the app
-#REMOVEME? pkg_dependencies=(
-    python3-dev
-    python3-venv
-    libffi-dev
-    libssl-dev
-)
-
-#REMOVEME? pip_dependencies=(
+pip_dependencies=(
     'ihatemoney==5.2.0'
     'gunicorn>=20.0'
     'PyMySQL>=0.9,<1.1'
