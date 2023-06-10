@@ -9,10 +9,6 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-# Secret key for cookies encryption.
-secret_key=$(ynh_string_random --length=32)
-ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
-
 #=================================================
 # SPECIFIC SETUP
 #=================================================
@@ -41,6 +37,10 @@ ynh_add_nginx_config
 #=================================================
 ynh_script_progression --message="Adding a configuration file..."
 
+# Secret key for cookies encryption.
+secret_key=$(ynh_string_random --length=32)
+ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
+
 #run source in a 'sub shell'
 (
 	set +o nounset
@@ -49,7 +49,7 @@ ynh_script_progression --message="Adding a configuration file..."
 	python3 ../conf/hash_generator.py $password > ${install_dir}/key.txt
 )
 
-hashed_password=$(cat $install_dir/key.txt)
+hashed_password=$(cat "$install_dir/key.txt")
 ynh_secure_remove --file="$install_dir/key.txt"
 ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 
