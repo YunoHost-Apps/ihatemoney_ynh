@@ -6,8 +6,8 @@ After=network.target mysql.service
 [Service]
 Type=simple
 User=__APP__
-Environment=IHATEMONEY_SETTINGS_FILE_PATH=__FINALPATH__/ihatemoney.cfg
-ExecStart=__FINALPATH__/venv/bin/gunicorn -c __FINALPATH__/gunicorn.conf.py ihatemoney.wsgi:application
+Environment=IHATEMONEY_SETTINGS_FILE_PATH=__INSTALL_DIR__/ihatemoney.cfg
+ExecStart=__INSTALL_DIR__/venv/bin/gunicorn -c __INSTALL_DIR__/gunicorn.conf.py ihatemoney.wsgi:application
 Restart=always
 RestartSec=2
 
