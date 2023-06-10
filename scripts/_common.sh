@@ -5,14 +5,14 @@
 #=================================================
 
 # dependencies used by the app
-pkg_dependencies=(
+#REMOVEME? pkg_dependencies=(
     python3-dev
     python3-venv
     libffi-dev
     libssl-dev
 )
 
-pip_dependencies=(
+#REMOVEME? pip_dependencies=(
     'ihatemoney==5.2.0'
     'gunicorn>=20.0'
     'PyMySQL>=0.9,<1.1'
