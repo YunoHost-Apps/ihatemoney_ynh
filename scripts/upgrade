@@ -87,9 +87,8 @@ if [ -z "${hashed_password:-}" ] && [ test -f "${install_dir}/venv/bin/activate"
 	)
 
 	hashed_password=$(cat $install_dir/key.txt)
-#REMOVEME? 	ynh_secure_remove --file="$install_dir/key.txt"
-#REMOVEME? 	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
-	ynh_send_readme_to_admin --app_message="../conf/upgrade.msg" --type="upgrade"
+	ynh_secure_remove --file="$install_dir/key.txt"
+ 	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 fi
 
 if [ ! -d "/var/log/$app" ]; then
