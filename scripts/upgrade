@@ -70,7 +70,7 @@ if [[ "$upgrade_from_opt" == "true" ]]; then
 fi
 
 # If secret_key doesn't exist, create it
-if [ -z "$secret_key" ]; then
+if [ -z "${secret_key:-}" ]; then
 	secret_key=$(ynh_string_random --length=32)
 	ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
 fi
