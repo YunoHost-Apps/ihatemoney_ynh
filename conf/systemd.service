@@ -6,10 +6,15 @@ After=network.target mysql.service
 [Service]
 Type=simple
 User=__APP__
+Group=__APP__
+WorkingDirectory=__INSTALL_DIR__/
 Environment=IHATEMONEY_SETTINGS_FILE_PATH=__INSTALL_DIR__/ihatemoney.cfg
 ExecStart=__INSTALL_DIR__/venv/bin/gunicorn -c __INSTALL_DIR__/gunicorn.conf.py ihatemoney.wsgi:application
 Restart=always
 RestartSec=2
+
+StandardOutput=append:/var/log/__APP__/__APP__.log
+StandardError=inherit
 
 [Install]
 WantedBy=multi-user.target

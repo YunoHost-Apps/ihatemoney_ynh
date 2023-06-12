@@ -91,6 +91,13 @@ if [ -z "$hashed_password" ] && [ test -f "${install_dir}/venv/bin/activate" ]; 
  	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 fi
 
+if [ ! -d "/var/log/$app" ]; then
+	# Configure log directory
+	mkdir -p "/var/log/$app"
+	chown -R $app:$app "/var/log/$app"
+fi
+
+
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
