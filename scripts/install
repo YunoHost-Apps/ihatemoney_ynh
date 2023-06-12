@@ -134,6 +134,10 @@ ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$final_path/ih
 chmod 640 "$final_path/ihatemoney.cfg"
 chown $app:$app "$final_path/ihatemoney.cfg"
 
+# Configure log directory
+mkdir -p "/var/log/$app"
+chown -R $app:$app "/var/log/$app"
+
 #=================================================
 # SETUP SYSTEMD
 #=================================================
