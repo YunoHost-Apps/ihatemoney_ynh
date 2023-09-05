@@ -32,7 +32,7 @@ ynh_change_url_nginx_config
 #=================================================
 # Setup ihatemoney.cfg
 #=================================================
-#REMOVEME?
+
 path="$new_path"
 domain="$new_domain"
 

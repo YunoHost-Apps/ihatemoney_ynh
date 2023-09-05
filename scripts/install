@@ -41,15 +41,7 @@ ynh_script_progression --message="Adding a configuration file..."
 secret_key=$(ynh_string_random --length=32)
 ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
 
-#run source in a 'sub shell'
-(
-	set +o nounset
-	source "${install_dir}/venv/bin/activate"
-	set -o nounset
-	python3 ../conf/hash_generator.py $password > ${install_dir}/key.txt
-)
-
-hashed_password=$(cat "$install_dir/key.txt")
+hashed_password=$(_hash_password "$password")
 ynh_secure_remove --file="$install_dir/key.txt"
 ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 

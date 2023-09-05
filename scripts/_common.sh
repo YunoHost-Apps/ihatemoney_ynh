@@ -43,6 +43,23 @@ __ynh_python_venv_get_site_packages_dir() {
     "$venv_dir/bin/python3" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'
 }
 
+# shellcheck disable=SC2016
+HASH_PASSWORD_PYTHON='
+import sys, hashlib, uuid
+password = sys.argv[1].encode("utf-8")
+
+salt_text = uuid.uuid4().hex
+salt = salt_text.encode("utf-8")
+pbkdf2_iterations = 600000
+
+hash = hashlib.pbkdf2_hmac("sha256", password, salt, pbkdf2_iterations).hex()
+print(f"pbkdf2:sha256:{pbkdf2_iterations}${salt_text}${hash}")
+'
+
+_hash_password() {
+    password=$1
+    python3 -c "$HASH_PASSWORD_PYTHON" "$password"
+}
 
 #=================================================
 # EXPERIMENTAL HELPERS
