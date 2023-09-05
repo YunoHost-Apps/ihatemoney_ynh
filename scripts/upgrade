@@ -76,17 +76,9 @@ if [ -z "${secret_key:-}" ]; then
 fi
 
 # If hashed_password doesn't exist, create it
-if [ -z "${hashed_password:-}" ] && [ test -f "${install_dir}/venv/bin/activate" ]; then
+if [ -z "${hashed_password:-}" ]; then
 	password=$(ynh_string_random --length=16)
-	#run source in a 'sub shell'
-	(
-		set +o nounset
-		source "${install_dir}/venv/bin/activate"
-		set -o nounset
-		python3 ../conf/hash_generator.py $password > ${install_dir}/key.txt
-	)
-
-	hashed_password=$(cat $install_dir/key.txt)
+	hashed_password=$(_hash_password "$password")
 	ynh_secure_remove --file="$install_dir/key.txt"
  	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 fi
