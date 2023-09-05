@@ -4,4 +4,5 @@ test_format = 1.0
 
 [default]
 
+    test_upgrade_from.3d7d325fd4e10882df13b21968ed515b0df13836.name = "Last manifestv1"
     test_upgrade_from.17bde85b095eddeeb279ef96f5697f92a59380db.name = "Upgrade from 5.4"
