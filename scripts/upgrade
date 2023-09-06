@@ -17,9 +17,9 @@ ynh_script_progression --message="Checking version..."
 upgrade_type=$(ynh_check_app_version_changed)
 
 if ynh_compare_current_package_version --comparison le --version "4.1.5~ynh2"; then
-	upgrade_from_opt=true
+    upgrade_from_opt=true
 else
-	upgrade_from_opt=false
+    upgrade_from_opt=false
 fi
 
 #=================================================
@@ -29,9 +29,9 @@ fi
 #=================================================
 
 if [[ "$upgrade_from_opt" == "false" ]]; then
-	ynh_script_progression --message="Stopping a systemd service..." --weight=1
+    ynh_script_progression --message="Stopping a systemd service..." --weight=1
 
-	ynh_systemd_action --service_name=$app --action="stop"
+    ynh_systemd_action --service_name=$app --action="stop"
 fi
 
 #=================================================
@@ -43,50 +43,50 @@ ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 # MIGRATION: Remove old code (from pre-4.1.5 versions, not using venv)
 if [[ "$upgrade_from_opt" == "true" ]]; then
 
-	# Remove legacy install dir
-	ynh_secure_remove /opt/yunohost/ihatemoney
+    # Remove legacy install dir
+    ynh_secure_remove /opt/yunohost/ihatemoney
 
-	# Remove legacy Supervisor config
-	rm -f /etc/supervisor/conf.d/ihatemoney.conf
+    # Remove legacy Supervisor config
+    rm -f /etc/supervisor/conf.d/ihatemoney.conf
 
-	if [ -e /etc/ihatemoney/settings.py ]; then
-		# Strip out the no longer used part of the settings
-		python3 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
-		# Rename
-		mv /etc/ihatemoney/settings.py "/etc/ihatemoney/ihatemoney.cfg"
-	fi
+    if [ -e /etc/ihatemoney/settings.py ]; then
+        # Strip out the no longer used part of the settings
+        python3 -c "d = open('/etc/ihatemoney/settings.py').read().replace('try:\n    from settings import *\nexcept ImportError:\n    pass\n', ''); open('/etc/ihatemoney/settings.py', 'w').write(d)"
+        # Rename
+        mv /etc/ihatemoney/settings.py "/etc/ihatemoney/ihatemoney.cfg"
+    fi
 
-	for old_file in "/etc/ihatemoney/ihatemoney.cfg" "/etc/$app/gunicorn.conf.py"; do
-		ynh_backup_if_checksum_is_different --file="$old_file"
-		ynh_delete_file_checksum --file="$old_file"
-	done
+    for old_file in "/etc/ihatemoney/ihatemoney.cfg" "/etc/$app/gunicorn.conf.py"; do
+        ynh_backup_if_checksum_is_different --file="$old_file"
+        ynh_delete_file_checksum --file="$old_file"
+    done
 
-	install_dir=/var/www/$app
- 	ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
+    install_dir=/var/www/$app
+    ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
 
-	db_name=ihatemoney
-	db_user=$db_name
- 	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+    db_name=ihatemoney
+    db_user=$db_name
+    ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 fi
 
 # If secret_key doesn't exist, create it
 if [ -z "${secret_key:-}" ]; then
-	secret_key=$(ynh_string_random --length=32)
-	ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
+    secret_key=$(ynh_string_random --length=32)
+    ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
 fi
 
 # If hashed_password doesn't exist, create it
 if [ -z "${hashed_password:-}" ]; then
-	password=$(ynh_string_random --length=16)
-	hashed_password=$(_hash_password "$password")
-	ynh_secure_remove --file="$install_dir/key.txt"
- 	ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
+    password=$(ynh_string_random --length=16)
+    hashed_password=$(_hash_password "$password")
+    ynh_secure_remove --file="$install_dir/key.txt"
+    ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
 fi
 
 if [ ! -d "/var/log/$app" ]; then
-	# Configure log directory
-	mkdir -p "/var/log/$app"
-	chown -R $app:$app "/var/log/$app"
+    # Configure log directory
+    mkdir -p "/var/log/$app"
+    chown -R $app:$app "/var/log/$app"
 fi
 
 
