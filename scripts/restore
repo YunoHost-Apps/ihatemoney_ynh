@@ -17,10 +17,6 @@ ynh_script_progression --message="Restoring the app main directory..." --weight=
 
 ynh_restore_file --origin_path="$install_dir"
 
-chmod 750 "$install_dir"
-chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
-
 #=================================================
 # SPECIFIC RESTORATION
 #=================================================
@@ -35,7 +31,7 @@ ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Restoring the MySQL database..." --weight=1
 
-ynh_mysql_connect_as --user=$db_user --password=$db_pwd --database=$db_name < ./db.sql
+ynh_mysql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name" < ./db.sql
 
 #=================================================
 # RESTORE SYSTEMD
@@ -43,7 +39,7 @@ ynh_mysql_connect_as --user=$db_user --password=$db_pwd --database=$db_name < ./
 ynh_script_progression --message="Restoring the systemd configuration..." --weight=1
 
 ynh_restore_file --origin_path="/etc/systemd/system/$app.service"
-systemctl enable $app.service --quiet
+systemctl enable "$app.service" --quiet
 
 #=================================================
 # RESTORE LOG
@@ -56,14 +52,14 @@ ynh_restore_file --origin_path="/var/log/$app"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
 
-yunohost service add $app --description="$app daemon for IHateMoney" --log=systemd
+yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=$app --action="start" --line_match="Listening at"
+ynh_systemd_action --service_name="$app" --action="start" --line_match="Listening at"
 wait_gunicorn_start
 
 #=================================================
