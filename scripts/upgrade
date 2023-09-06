@@ -31,7 +31,7 @@ fi
 if [[ "$upgrade_from_opt" == "false" ]]; then
     ynh_script_progression --message="Stopping a systemd service..." --weight=1
 
-    ynh_systemd_action --service_name=$app --action="stop"
+    ynh_systemd_action --service_name="$app" --action="stop"
 fi
 
 #=================================================
@@ -62,31 +62,30 @@ if [[ "$upgrade_from_opt" == "true" ]]; then
     done
 
     install_dir=/var/www/$app
-    ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
+    ynh_app_setting_set --app="$app" --key=install_dir --value="$install_dir"
 
     db_name=ihatemoney
     db_user=$db_name
-    ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+    ynh_app_setting_set --app="$app" --key=db_name --value="$db_name"
 fi
 
 # If secret_key doesn't exist, create it
 if [ -z "${secret_key:-}" ]; then
     secret_key=$(ynh_string_random --length=32)
-    ynh_app_setting_set --app=$app --key=secret_key --value=$secret_key
+    ynh_app_setting_set --app="$app" --key=secret_key --value="$secret_key"
 fi
 
 # If hashed_password doesn't exist, create it
 if [ -z "${hashed_password:-}" ]; then
     password=$(ynh_string_random --length=16)
     hashed_password=$(_hash_password "$password")
-    ynh_secure_remove --file="$install_dir/key.txt"
-    ynh_app_setting_set --app=$app --key=hashed_password --value=$hashed_password
+    ynh_app_setting_set --app="$app" --key=hashed_password --value="$hashed_password"
 fi
 
 if [ ! -d "/var/log/$app" ]; then
     # Configure log directory
     mkdir -p "/var/log/$app"
-    chown -R $app:$app "/var/log/$app"
+    chown -R "$app:$app" "/var/log/$app"
 fi
 
 
@@ -100,10 +99,6 @@ ynh_script_progression --message="Building venv..." --weight=6
 ynh_secure_remove --file="$install_dir/venv"
 __ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_dependencies[*]}"
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install_dir/venv")
-
-chmod 750 "$install_dir"
-chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -119,23 +114,20 @@ ynh_add_nginx_config
 #=================================================
 ynh_script_progression --message="Updating a configuration file..."
 
-ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
-chmod 640 "$install_dir/gunicorn.conf.py"
-chown $app:$app "$install_dir/gunicorn.conf.py"
-
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
+ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
 ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
-chmod 640 "$install_dir/ihatemoney.cfg"
-chown $app:$app "$install_dir/ihatemoney.cfg"
+
+chmod -R o-rwx "$install_dir"
+chown -R "$app:$app" "$install_dir"
 
 #=================================================
 # SETUP SYSTEMD
 #=================================================
 ynh_script_progression --message="Upgrading systemd configuration..." --weight=1
 
-# Create a dedicated systemd config
 ynh_add_systemd_config
 
 #=================================================
@@ -145,14 +137,14 @@ ynh_add_systemd_config
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
 
-yunohost service add $app --description="$app daemon for IHateMoney" --log=systemd
+yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=$app --action="start" --line_match="Listening at"
+ynh_systemd_action --service_name="$app" --action="start" --line_match="Listening at"
 wait_gunicorn_start
 
 #=================================================
