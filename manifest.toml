@@ -7,7 +7,7 @@ name = "I Hate Money"
 description.en = "Simple app to manage your collective expenses"
 description.fr = "Gérez simplement vos dépenses collectives"
 
-version = "5.2.0~ynh3"
+version = "6.1.0~ynh3"
 
 maintainers = ["Jocelyn Delalande"]
 
