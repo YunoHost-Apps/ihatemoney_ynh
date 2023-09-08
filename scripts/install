@@ -46,8 +46,7 @@ sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
 ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
 
-chmod -R o-rwx "$install_dir"
-chown -R "$app:$app" "$install_dir"
+chown -R "$app:www-data" "$install_dir"
 
 # Configure log directory
 mkdir -p "/var/log/$app"
