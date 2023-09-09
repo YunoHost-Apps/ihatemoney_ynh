@@ -3,9 +3,6 @@ Description=I hate money
 Requires=network.target mysql.service
 After=network.target mysql.service
 
-[Install]
-WantedBy=multi-user.target
-
 [Service]
 Type=simple
 Restart=always
@@ -23,18 +20,22 @@ StandardError=inherit
 # .. but this should be a good baseline
 # Details for these options: https://www.freedesktop.org/software/systemd/man/systemd.exec.html
 NoNewPrivileges=yes
-#PrivateTmp=yes
+# PrivateTmp=yes
 PrivateDevices=yes
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 RestrictNamespaces=yes
 RestrictRealtime=yes
 DevicePolicy=closed
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
 ProtectSystem=full
 ProtectControlGroups=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
 LockPersonality=yes
-SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @setuid @swap
+SystemCallArchitectures=native
+SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @setuid @swap @cpu-emulation
 
 # Denying access to capabilities that should not be relevant for webapps
 # Doc: https://man7.org/linux/man-pages/man7/capabilities.7.html
@@ -47,3 +48,7 @@ CapabilityBoundingSet=~CAP_SYS_TTY_CONFIG
 CapabilityBoundingSet=~CAP_MAC_ADMIN CAP_MAC_OVERRIDE
 CapabilityBoundingSet=~CAP_NET_ADMIN CAP_NET_BROADCAST CAP_NET_RAW
 CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_SYSLOG
+
+
+[Install]
+WantedBy=multi-user.target
