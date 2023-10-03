@@ -33,7 +33,6 @@ I hate money est une application web conçue pour faciliter la gestion partagée
 * Site officiel de l’app : <http://ihatemoney.org/>
 * Documentation officielle de l’admin : <https://ihatemoney.readthedocs.org/>
 * Dépôt de code officiel de l’app : <https://github.com/spiral-project/ihatemoney>
-* Documentation YunoHost pour cette app : <https://yunohost.org/app_ihatemoney>
 * Signaler un bug : <https://github.com/YunoHost-Apps/ihatemoney_ynh/issues>
 
 ## Informations pour les développeurs
