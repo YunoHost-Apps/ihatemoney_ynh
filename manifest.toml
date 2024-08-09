@@ -7,7 +7,7 @@ name = "I Hate Money"
 description.en = "Simple app to manage your collective expenses"
 description.fr = "Gérez simplement vos dépenses collectives"
 
-version = "6.1.0~ynh3"
+version = "6.1.3~ynh1"
 
 maintainers = ["Jocelyn Delalande"]
 
@@ -47,8 +47,8 @@ ram.runtime = "100M"
 
 [resources]
     [resources.sources.main]
-    url = "https://github.com/spiral-project/ihatemoney/archive/refs/tags/6.1.0.tar.gz"
-    sha256 = "no available checksum for now"
+    url = "https://github.com/spiral-project/ihatemoney/archive/refs/tags/6.1.3.tar.gz"
+    sha256 = "5f47a1c4ba18684ce1c645869202d36cfea94f4dc3b974d694a6dcef292c38e9"
     prefetch = false
 
     # Only here as a notification source, need to change version in _common.sh
