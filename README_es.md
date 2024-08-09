@@ -5,7 +5,7 @@ No se debe editar a mano.
 
 # I Hate Money para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
 
 [![Instalar I Hate Money con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 

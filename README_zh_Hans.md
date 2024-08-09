@@ -5,7 +5,7 @@
 
 # YunoHost 上的 I Hate Money
 
-[![集成程度](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![工作状态](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![集成程度](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![工作状态](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
 
 [![使用 YunoHost 安装 I Hate Money](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 

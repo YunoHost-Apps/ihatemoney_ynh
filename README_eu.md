@@ -5,7 +5,7 @@ EZ editatu eskuz.
 
 # I Hate Money YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/ihatemoney.svg)](https://dash.yunohost.org/appci/app/ihatemoney) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Integrazio maila](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
 
 [![Instalatu I Hate Money YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
