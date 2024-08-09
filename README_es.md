@@ -19,7 +19,7 @@ No se debe editar a mano.
 I hate money is a web application made to ease shared budget management. It keeps track of who bought what, when, and for whom; and helps to settle the bills.
 
 
-**Versión actual:** 6.1.0~ynh3
+**Versión actual:** 6.1.3~ynh1
 
 **Demo:** <https://ihatemoney.org/demo/>
 
