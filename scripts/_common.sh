@@ -5,7 +5,7 @@
 #=================================================
 
 pip_dependencies=(
-    'ihatemoney==6.1.0'
+    'ihatemoney==6.1.3'
     'gunicorn>=20.0'
     'PyMySQL>=0.9,<1.1'
 )
