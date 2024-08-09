@@ -46,6 +46,15 @@ ram.runtime = "100M"
     type = "password"
 
 [resources]
+    [resources.sources.main]
+    url = "https://github.com/spiral-project/ihatemoney/archive/refs/tags/6.1.0.tar.gz"
+    sha256 = "no available checksum for now"
+    prefetch = false
+
+    # Only here as a notification source, need to change version in _common.sh
+    autoupdate.strategy = "latest_github_release"
+    autoupdate.needs_manual_tweaks = true
+
     [resources.system_user]
 
     [resources.install_dir]
