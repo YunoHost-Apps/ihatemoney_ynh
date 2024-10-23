@@ -19,7 +19,7 @@ Il NE doit PAS être modifié à la main.
 I hate money est une application web conçue pour faciliter la gestion partagée du budget. Elle permet de savoir qui a acheté quoi, quand et pour qui, et aide à régler les factures.
 
 
-**Version incluse :** 6.1.3~ynh1
+**Version incluse :** 6.1.3~ynh2
 
 **Démo :** <https://ihatemoney.org/demo/>
 
