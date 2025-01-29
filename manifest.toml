@@ -22,8 +22,10 @@ demo = "https://ihatemoney.org/demo/"
 yunohost = ">= 11.1.21"
 architectures = "all"
 multi_instance = true
+
 ldap = false
 sso = false
+
 disk = "50M"
 ram.build = "300M"
 ram.runtime = "100M"
