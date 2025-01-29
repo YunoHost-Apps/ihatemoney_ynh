@@ -27,8 +27,7 @@ I hate money est une application web conçue pour faciliter la gestion partagée
 
 ## Captures d’écran
 
-![Capture d’écran de I Hate Money](./doc/screenshots/screenshot_1_global.webp)
-![Capture d’écran de I Hate Money](./doc/screenshots/screenshot_2_new_operation.webp)
+![Capture d’écran de I Hate Money](./doc/screenshots/screenshot.webp)
 
 ## Documentations et ressources
 
