@@ -27,8 +27,7 @@ I hate money is a web application made to ease shared budget management. It keep
 
 ## 截图
 
-![I Hate Money 的截图](./doc/screenshots/screenshot_1_global.webp)
-![I Hate Money 的截图](./doc/screenshots/screenshot_2_new_operation.webp)
+![I Hate Money 的截图](./doc/screenshots/screenshot.webp)
 
 ## 文档与资源
 

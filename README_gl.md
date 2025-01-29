@@ -27,8 +27,7 @@ I hate money is a web application made to ease shared budget management. It keep
 
 ## Capturas de pantalla
 
-![Captura de pantalla de I Hate Money](./doc/screenshots/screenshot_1_global.webp)
-![Captura de pantalla de I Hate Money](./doc/screenshots/screenshot_2_new_operation.webp)
+![Captura de pantalla de I Hate Money](./doc/screenshots/screenshot.webp)
 
 ## Documentación e recursos
 
