@@ -14,9 +14,9 @@ maintainers = ["Jocelyn Delalande"]
 [upstream]
 license = "MIT"
 website = "http://ihatemoney.org/"
+demo = "https://ihatemoney.org/demo/"
 admindoc = "https://ihatemoney.readthedocs.org/"
 code = "https://github.com/spiral-project/ihatemoney"
-demo = "https://ihatemoney.org/demo/"
 
 [integration]
 yunohost = ">= 12.0.9"
