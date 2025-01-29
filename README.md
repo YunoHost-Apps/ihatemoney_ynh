@@ -5,7 +5,9 @@ It shall NOT be edited by hand.
 
 # I Hate Money for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![Working status](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Integration level](https://apps.yunohost.org/badge/integration/ihatemoney)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/)
+![Working status](https://apps.yunohost.org/badge/state/ihatemoney)
+![Maintenance status](https://apps.yunohost.org/badge/maintained/ihatemoney)
 
 [![Install I Hate Money with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 

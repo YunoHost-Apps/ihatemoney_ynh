@@ -1,20 +1,12 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# BUILD VENV
-#=================================================
-ynh_script_progression --message="Building venv..." --weight=6
+ynh_script_progression "Building venv..."
 
 __ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_dependencies[*]}"
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install_dir/venv")
@@ -22,32 +14,29 @@ python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring NGINX web server..." --weight=1
+ynh_script_progression "Configuring NGINX web server..."
 
-# Create a dedicated NGINX config
-## Needs $python_venv_site_packages
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..."
+ynh_script_progression "Adding $app's configuration..."
 
 # Secret key for cookies encryption.
 secret_key=$(ynh_string_random --length=32)
-ynh_app_setting_set --app="$app" --key=secret_key --value="$secret_key"
+ynh_app_setting_set --key=secret_key --value="$secret_key"
 
 hashed_password=$(_hash_password "$password")
-ynh_app_setting_set --app="$app" --key=hashed_password --value="$hashed_password"
+ynh_app_setting_set --key=hashed_password --value="$hashed_password"
 
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
-ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
-ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
+ynh_config_add --template="gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
+ynh_config_add --template="ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
 
 chown -R "$app:www-data" "$install_dir"
-
 # Configure log directory
 mkdir -p "/var/log/$app"
 chown -R "$app:$app" "/var/log/$app"
@@ -55,31 +44,19 @@ chown -R "$app:$app" "/var/log/$app"
 #=================================================
 # SETUP SYSTEMD
 #=================================================
-ynh_script_progression --message="Configuring a systemd service..." --weight=1
+ynh_script_progression "Configuring $app's systemd service..."
 
-# Create a dedicated systemd config
-ynh_add_systemd_config
 
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
+ynh_config_add_systemd
 
 yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
-#=================================================
-# START SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_systemctl --service="$app" --action="start" --wait_until="Listening at"
 
-# Start a systemd service
-ynh_systemd_action --service_name="$app" --action="start" --line_match="Listening at"
 wait_gunicorn_start
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression "Installation of $app completed"
