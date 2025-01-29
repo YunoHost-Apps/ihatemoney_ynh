@@ -64,7 +64,9 @@ ram.runtime = "100M"
 
     [resources.permissions]
     main.url = "/"
-
+    api.url = "/api"
+    api.auth_header = true
+    
     [resources.apt]
     packages = "mariadb-server, python3-dev, python3-venv, libffi-dev, libssl-dev"
 
