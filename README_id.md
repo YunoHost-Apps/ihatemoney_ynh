@@ -5,7 +5,9 @@ Ini TIDAK boleh diedit dengan tangan.
 
 # I Hate Money untuk YunoHost
 
-[![Tingkat integrasi](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![Status kerja](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Status pemeliharaan](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Tingkat integrasi](https://apps.yunohost.org/badge/integration/ihatemoney)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/)
+![Status kerja](https://apps.yunohost.org/badge/state/ihatemoney)
+![Status pemeliharaan](https://apps.yunohost.org/badge/maintained/ihatemoney)
 
 [![Pasang I Hate Money dengan YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
