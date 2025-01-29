@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
@@ -10,16 +9,6 @@ source /usr/share/yunohost/helpers
 ynh_script_progression "Restoring the app main directory..."
 
 ynh_restore "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
-#=================================================
-# SPECIFIC RESTORATION
-#=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression "Restoring the NGINX web server configuration..."
-
-ynh_restore "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # RESTORE THE MYSQL DATABASE
@@ -33,19 +22,12 @@ ynh_mysql_db_shell < ./db.sql
 #=================================================
 ynh_script_progression "Restoring $app's systemd service..."
 
+ynh_restore "/etc/nginx/conf.d/$domain.d/$app.conf"
+
 ynh_restore "/etc/systemd/system/$app.service"
 systemctl enable "$app.service" --quiet
 
-#=================================================
-# RESTORE LOG
-#=================================================
-
 ynh_restore "/var/log/$app"
-
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression "Integrating service in YunoHost..."
 
 yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
@@ -56,11 +38,6 @@ ynh_script_progression "Starting $app's systemd service..."
 
 ynh_systemctl --service="$app" --action="start" --wait_until="Listening at"
 wait_gunicorn_start
-
-#=================================================
-# RELOAD NGINX AND PHP-FPM
-#=================================================
-ynh_script_progression "Reloading NGINX web server..."
 
 ynh_systemctl --service=nginx --action=reload
 

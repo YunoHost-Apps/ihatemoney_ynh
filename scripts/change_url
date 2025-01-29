@@ -22,11 +22,6 @@ ynh_config_change_url_nginx
 #=================================================
 # SPECIFIC MODIFICATIONS
 #=================================================
-# Setup ihatemoney.cfg
-#=================================================
-
-path="$new_path"
-domain="$new_domain"
 
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
@@ -41,7 +36,6 @@ chown "$app:$app" "$install_dir/ihatemoney.cfg"
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-# Start a systemd service
 ynh_systemctl --service="$app" --action="start"
 wait_gunicorn_start
 

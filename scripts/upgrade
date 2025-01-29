@@ -56,11 +56,7 @@ if [[ "$upgrade_from_opt" == "true" ]]; then
 fi
 
 # If secret_key doesn't exist, create it
-# FIXMEhelpers2.1: maybe replace with: ynh_app_setting_set_default --key=secret_key --value=$(ynh_string_random --length=32)
-if [ -z "${secret_key:-}" ]; then
-    secret_key=$(ynh_string_random --length=32)
-    ynh_app_setting_set --key=secret_key --value="$secret_key"
-fi
+ynh_app_setting_set_default --key=secret_key --value=$(ynh_string_random --length=32)
 
 # If hashed_password doesn't exist, create it
 if [ -z "${hashed_password:-}" ]; then
@@ -72,7 +68,7 @@ fi
 if [ ! -d "/var/log/$app" ]; then
     # Configure log directory
     mkdir -p "/var/log/$app"
-    #REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:$app" "/var/log/$app"
+    chown -R "$app:$app" "/var/log/$app"
 fi
 
 #=================================================
@@ -85,15 +81,6 @@ __ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_depende
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install_dir/venv")
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression "Upgrading NGINX web server configuration..."
-
-# Create a dedicated NGINX config
-## Needs $python_venv_site_packages
-ynh_config_add_nginx
-
-#=================================================
 # UPDATE A CONFIG FILE
 #=================================================
 ynh_script_progression "Updating configuration..."
@@ -104,18 +91,16 @@ sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 ynh_config_add --template="gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
 ynh_config_add --template="ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
+chown -R "$app:www-data" "$install_dir"
+
 #=================================================
 # SETUP SYSTEMD
 #=================================================
 ynh_script_progression "Upgrading systemd configuration..."
 
-ynh_config_add_systemd
+ynh_config_add_nginx
 
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression "Integrating service in YunoHost..."
+ynh_config_add_systemd
 
 yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 

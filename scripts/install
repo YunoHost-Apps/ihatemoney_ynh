@@ -6,8 +6,6 @@ source /usr/share/yunohost/helpers
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# BUILD VENV
-#=================================================
 ynh_script_progression "Building venv..."
 
 __ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_dependencies[*]}"
@@ -18,8 +16,6 @@ python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install
 #=================================================
 ynh_script_progression "Configuring NGINX web server..."
 
-# Create a dedicated NGINX config
-## Needs $python_venv_site_packages
 ynh_config_add_nginx
 
 #=================================================
@@ -40,33 +36,23 @@ sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 ynh_config_add --template="gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
 ynh_config_add --template="ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
+chown -R "$app:www-data" "$install_dir"
 # Configure log directory
 mkdir -p "/var/log/$app"
-#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:$app" "/var/log/$app"
+chown -R "$app:$app" "/var/log/$app"
 
 #=================================================
 # SETUP SYSTEMD
 #=================================================
 ynh_script_progression "Configuring $app's systemd service..."
 
-# Create a dedicated systemd config
-ynh_config_add_systemd
 
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression "Integrating service in YunoHost..."
+ynh_config_add_systemd
 
 yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
-#=================================================
-# START SYSTEMD SERVICE
-#=================================================
-ynh_script_progression "Starting $app's systemd service..."
-
-# Start a systemd service
 ynh_systemctl --service="$app" --action="start" --wait_until="Listening at"
+
 wait_gunicorn_start
 
 #=================================================
