@@ -25,6 +25,7 @@ architectures = "all"
 multi_instance = true
 
 ldap = false
+
 sso = false
 
 disk = "50M"
@@ -55,7 +56,7 @@ ram.runtime = "100M"
     prefetch = false
 
     # Only here as a notification source, need to change version in _common.sh
-    autoupdate.strategy = "latest_github_release"
+    autoupdate.strategy = "tag"
     autoupdate.needs_manual_tweaks = true
 
     [resources.system_user]

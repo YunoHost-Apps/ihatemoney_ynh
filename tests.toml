@@ -4,4 +4,17 @@ test_format = 1.0
 
 [default]
 
-    #test_upgrade_from.17bde85b095eddeeb279ef96f5697f92a59380db.name = "Upgrade from 5.4"
+    # ------------
+    # Tests to run
+    # ------------
+
+    # -------------------------------
+    # Default args to use for install
+    # -------------------------------
+
+    # -------------------------------
+    # Commits to test upgrade from
+    # -------------------------------
+
+    # test_upgrade_from.17bde85b095eddeeb279ef96f5697f92a59380db.name = "Upgrade from 5.4"
+    test_upgrade_from.283dc637b45fbaabb073573588bfdc3178c7ef4c.name = "Upgrade from 6.1.3~ynh1"

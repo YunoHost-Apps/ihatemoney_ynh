@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -12,16 +16,9 @@ __ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_depende
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install_dir/venv")
 
 #=================================================
-# NGINX CONFIGURATION
+# APP INITIAL CONFIGURATION
 #=================================================
-ynh_script_progression "Configuring NGINX web server..."
-
-ynh_config_add_nginx
-
-#=================================================
-# ADD A CONFIGURATION
-#=================================================
-ynh_script_progression "Adding $app's configuration..."
+ynh_script_progression "Adding $app's configuration files..."
 
 # Secret key for cookies encryption.
 secret_key=$(ynh_string_random --length=32)
@@ -42,15 +39,23 @@ mkdir -p "/var/log/$app"
 chown -R "$app:$app" "/var/log/$app"
 
 #=================================================
-# SETUP SYSTEMD
+# SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression "Configuring $app's systemd service..."
+ynh_script_progression "Adding system configurations related to $app..."
 
+# Create a dedicated NGINX config using the conf/nginx.conf template
+ynh_config_add_nginx
 
+# Create a dedicated systemd config
 ynh_config_add_systemd
-
 yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression "Starting $app's systemd service..."
+
+# Start a systemd service
 ynh_systemctl --service="$app" --action="start" --wait_until="Listening at"
 
 wait_gunicorn_start
