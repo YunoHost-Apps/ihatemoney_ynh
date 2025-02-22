@@ -5,7 +5,9 @@
 
 # YunoHost 上的 I Hate Money
 
-[![集成程度](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![工作状态](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![集成程度](https://apps.yunohost.org/badge/integration/ihatemoney)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/)
+![工作状态](https://apps.yunohost.org/badge/state/ihatemoney)
+![维护状态](https://apps.yunohost.org/badge/maintained/ihatemoney)
 
 [![使用 YunoHost 安装 I Hate Money](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
@@ -19,14 +21,13 @@
 I hate money is a web application made to ease shared budget management. It keeps track of who bought what, when, and for whom; and helps to settle the bills.
 
 
-**分发版本：** 6.1.3~ynh1
+**分发版本：** 6.1.3~ynh2
 
 **演示：** <https://ihatemoney.org/demo/>
 
 ## 截图
 
-![I Hate Money 的截图](./doc/screenshots/screenshot_1_global.webp)
-![I Hate Money 的截图](./doc/screenshots/screenshot_2_new_operation.webp)
+![I Hate Money 的截图](./doc/screenshots/screenshot.webp)
 
 ## 文档与资源
 

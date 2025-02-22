@@ -1,50 +1,41 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
 source _common.sh
 source /usr/share/yunohost/helpers
 
-#=================================================
-# CHECK VERSION
-#=================================================
-ynh_script_progression --message="Checking version..."
+ynh_script_progression "Checking version..."
 
-upgrade_type=$(ynh_check_app_version_changed)
-
-if ynh_compare_current_package_version --comparison le --version "4.1.5~ynh2"; then
+if ynh_app_upgrading_from_version_before_or_equal_to 4.1.5~ynh2; then
     upgrade_from_opt=true
 else
     upgrade_from_opt=false
 fi
 
 #=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
+ynh_script_progression "Stopping $app's systemd service..."
 
 if [[ "$upgrade_from_opt" == "false" ]]; then
-    ynh_script_progression --message="Stopping a systemd service..." --weight=1
+    ynh_script_progression "Stopping $app's systemd service..."
 
-    ynh_systemd_action --service_name="$app" --action="stop"
+    ynh_systemctl --service="$app" --action="stop"
 fi
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
-
+ynh_script_progression "Ensuring downward compatibility..."
 
 # MIGRATION: Remove old code (from pre-4.1.5 versions, not using venv)
 if [[ "$upgrade_from_opt" == "true" ]]; then
 
     # Remove legacy install dir
-    ynh_secure_remove /opt/yunohost/ihatemoney
+    ynh_safe_rm /opt/yunohost/ihatemoney
 
     # Remove legacy Supervisor config
     rm -f /etc/supervisor/conf.d/ihatemoney.conf
@@ -57,29 +48,26 @@ if [[ "$upgrade_from_opt" == "true" ]]; then
     fi
 
     for old_file in "/etc/ihatemoney/ihatemoney.cfg" "/etc/$app/gunicorn.conf.py"; do
-        ynh_backup_if_checksum_is_different --file="$old_file"
-        ynh_delete_file_checksum --file="$old_file"
+        ynh_backup_if_checksum_is_different "$old_file"
+        ynh_delete_file_checksum "$old_file"
     done
 
     install_dir=/var/www/$app
-    ynh_app_setting_set --app="$app" --key=install_dir --value="$install_dir"
+    ynh_app_setting_set --key=install_dir --value="$install_dir"
 
     db_name=ihatemoney
     db_user=$db_name
-    ynh_app_setting_set --app="$app" --key=db_name --value="$db_name"
+    ynh_app_setting_set --key=db_name --value="$db_name"
 fi
 
 # If secret_key doesn't exist, create it
-if [ -z "${secret_key:-}" ]; then
-    secret_key=$(ynh_string_random --length=32)
-    ynh_app_setting_set --app="$app" --key=secret_key --value="$secret_key"
-fi
+ynh_app_setting_set_default --key=secret_key --value=$(ynh_string_random --length=32)
 
 # If hashed_password doesn't exist, create it
 if [ -z "${hashed_password:-}" ]; then
     password=$(ynh_string_random --length=16)
     hashed_password=$(_hash_password "$password")
-    ynh_app_setting_set --app="$app" --key=hashed_password --value="$hashed_password"
+    ynh_app_setting_set --key=hashed_password --value="$hashed_password"
 fi
 
 if [ ! -d "/var/log/$app" ]; then
@@ -88,66 +76,48 @@ if [ ! -d "/var/log/$app" ]; then
     chown -R "$app:$app" "/var/log/$app"
 fi
 
-
-#=================================================
-# SPECIFIC UPGRADE
 #=================================================
 # BUILD VENV
 #=================================================
-ynh_script_progression --message="Building venv..." --weight=6
+ynh_script_progression "Building venv..."
 
-ynh_secure_remove --file="$install_dir/venv"
+ynh_safe_rm "$install_dir/venv"
 __ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_dependencies[*]}"
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install_dir/venv")
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
-
-# Create a dedicated NGINX config
-## Needs $python_venv_site_packages
-ynh_add_nginx_config
-
-#=================================================
 # UPDATE A CONFIG FILE
 #=================================================
-ynh_script_progression --message="Updating a configuration file..."
+ynh_script_progression "Updating $app's configuration files..."
 
 # Allows to comment some config lines if not using sub path
 sub_path_only="$(if [[ "$path" == "/" ]]; then echo '# ' ; else echo ''; fi)"
 
-ynh_add_config --template="../conf/gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
-ynh_add_config --template="../conf/ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
+ynh_config_add --template="gunicorn.conf.py" --destination="$install_dir/gunicorn.conf.py"
+ynh_config_add --template="ihatemoney.cfg" --destination="$install_dir/ihatemoney.cfg"
 
 chown -R "$app:www-data" "$install_dir"
 
 #=================================================
-# SETUP SYSTEMD
+# REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Upgrading systemd configuration..." --weight=1
+ynh_script_progression "Upgrading system configurations related to $app..."
 
-ynh_add_systemd_config
+ynh_config_add_nginx
 
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
-
+ynh_config_add_systemd
 yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_script_progression "Starting $app's systemd service..."
 
-ynh_systemd_action --service_name="$app" --action="start" --line_match="Listening at"
+ynh_systemctl --service="$app" --action="start" --wait_until="Listening at"
 wait_gunicorn_start
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression "Upgrade of $app completed"

@@ -5,8 +5,6 @@ After=network.target mysql.service
 
 [Service]
 Type=simple
-Restart=always
-RestartSec=2
 User=__APP__
 Group=__APP__
 WorkingDirectory=__INSTALL_DIR__/
@@ -14,10 +12,10 @@ Environment=IHATEMONEY_SETTINGS_FILE_PATH=__INSTALL_DIR__/ihatemoney.cfg
 ExecStart=__INSTALL_DIR__/venv/bin/gunicorn -c __INSTALL_DIR__/gunicorn.conf.py ihatemoney.wsgi:application
 StandardOutput=append:/var/log/__APP__/__APP__.log
 StandardError=inherit
+Restart=always
+RestartSec=2
 
 # Sandboxing options to harden security
-# Depending on specificities of your service/app, you may need to tweak these
-# .. but this should be a good baseline
 # Details for these options: https://www.freedesktop.org/software/systemd/man/systemd.exec.html
 NoNewPrivileges=yes
 # PrivateTmp=yes
@@ -48,7 +46,6 @@ CapabilityBoundingSet=~CAP_SYS_TTY_CONFIG
 CapabilityBoundingSet=~CAP_MAC_ADMIN CAP_MAC_OVERRIDE
 CapabilityBoundingSet=~CAP_NET_ADMIN CAP_NET_BROADCAST CAP_NET_RAW
 CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_SYSLOG
-
 
 [Install]
 WantedBy=multi-user.target

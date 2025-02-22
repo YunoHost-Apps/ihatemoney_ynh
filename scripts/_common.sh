@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #=================================================
-# COMMON VARIABLES
+# COMMON VARIABLES AND CUSTOM HELPERS
 #=================================================
 
 pip_dependencies=(
@@ -9,11 +9,6 @@ pip_dependencies=(
     'gunicorn>=20.0'
     'PyMySQL>=0.9,<1.1'
 )
-
-
-#=================================================
-# PERSONAL HELPERS
-#=================================================
 
 wait_gunicorn_start() {
     # line_match isn't enough because ihatemoney may stop if database upgrades
@@ -60,11 +55,3 @@ _hash_password() {
     password=$1
     python3 -c "$HASH_PASSWORD_PYTHON" "$password"
 }
-
-#=================================================
-# EXPERIMENTAL HELPERS
-#=================================================
-
-#=================================================
-# FUTURE OFFICIAL HELPERS
-#=================================================

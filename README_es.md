@@ -5,7 +5,9 @@ No se debe editar a mano.
 
 # I Hate Money para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Nivel de integración](https://apps.yunohost.org/badge/integration/ihatemoney)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/)
+![Estado funcional](https://apps.yunohost.org/badge/state/ihatemoney)
+![Estado En Mantención](https://apps.yunohost.org/badge/maintained/ihatemoney)
 
 [![Instalar I Hate Money con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
@@ -19,14 +21,13 @@ No se debe editar a mano.
 I hate money is a web application made to ease shared budget management. It keeps track of who bought what, when, and for whom; and helps to settle the bills.
 
 
-**Versión actual:** 6.1.3~ynh1
+**Versión actual:** 6.1.3~ynh2
 
 **Demo:** <https://ihatemoney.org/demo/>
 
 ## Capturas
 
-![Captura de I Hate Money](./doc/screenshots/screenshot_1_global.webp)
-![Captura de I Hate Money](./doc/screenshots/screenshot_2_new_operation.webp)
+![Captura de I Hate Money](./doc/screenshots/screenshot.webp)
 
 ## Documentaciones y recursos
 
@@ -38,7 +39,7 @@ I hate money is a web application made to ease shared budget management. It keep
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 

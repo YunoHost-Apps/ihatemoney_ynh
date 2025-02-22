@@ -5,7 +5,9 @@ Il NE doit PAS être modifié à la main.
 
 # I Hate Money pour YunoHost
 
-[![Niveau d’intégration](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Niveau d’intégration](https://apps.yunohost.org/badge/integration/ihatemoney)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/)
+![Statut du fonctionnement](https://apps.yunohost.org/badge/state/ihatemoney)
+![Statut de maintenance](https://apps.yunohost.org/badge/maintained/ihatemoney)
 
 [![Installer I Hate Money avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
@@ -19,14 +21,13 @@ Il NE doit PAS être modifié à la main.
 I hate money est une application web conçue pour faciliter la gestion partagée du budget. Elle permet de savoir qui a acheté quoi, quand et pour qui, et aide à régler les factures.
 
 
-**Version incluse :** 6.1.3~ynh1
+**Version incluse :** 6.1.3~ynh2
 
 **Démo :** <https://ihatemoney.org/demo/>
 
 ## Captures d’écran
 
-![Capture d’écran de I Hate Money](./doc/screenshots/screenshot_1_global.webp)
-![Capture d’écran de I Hate Money](./doc/screenshots/screenshot_2_new_operation.webp)
+![Capture d’écran de I Hate Money](./doc/screenshots/screenshot.webp)
 
 ## Documentations et ressources
 

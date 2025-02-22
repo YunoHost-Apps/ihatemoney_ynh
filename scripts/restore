@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -13,68 +11,46 @@ source /usr/share/yunohost/helpers
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Restoring the app main directory..." --weight=1
+ynh_script_progression "Restoring the app main directory..."
 
-ynh_restore_file --origin_path="$install_dir"
-chmod -R o-rwx "$install_dir"
-chown -R "$app:www-data" "$install_dir"
-
-#=================================================
-# SPECIFIC RESTORATION
-#=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Restoring the NGINX web server configuration..." --weight=1
-
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_restore "$install_dir"
 
 #=================================================
 # RESTORE THE MYSQL DATABASE
 #=================================================
-ynh_script_progression --message="Restoring the MySQL database..." --weight=1
+ynh_script_progression "Restoring the MySQL database..."
 
-ynh_mysql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name" < ./db.sql
+ynh_mysql_db_shell < ./db.sql
 
 #=================================================
-# RESTORE SYSTEMD
+# RESTORE SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Restoring the systemd configuration..." --weight=1
+ynh_script_progression "Restoring system configurations related to $app..."
 
-ynh_restore_file --origin_path="/etc/systemd/system/$app.service"
+ynh_restore "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+ynh_restore "/etc/systemd/system/$app.service"
 systemctl enable "$app.service" --quiet
-
-#=================================================
-# RESTORE LOG
-#=================================================
-
-ynh_restore_file --origin_path="/var/log/$app"
-
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
-
 yunohost service add "$app" --description="$app daemon for IHateMoney" --log=systemd
 
 #=================================================
-# START SYSTEMD SERVICE
+# RESTORE VARIOUS FILES
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name="$app" --action="start" --line_match="Listening at"
+ynh_restore "/var/log/$app"
+
+#=================================================
+# RELOAD NGINX AND PHP-FPM OR THE APP SERVICE
+#=================================================
+ynh_script_progression "Reloading NGINX web server and $app's service..."
+
+ynh_systemctl --service="$app" --action="start" --wait_until="Listening at"
 wait_gunicorn_start
 
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# RELOAD NGINX AND PHP-FPM
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
-
-ynh_systemd_action --service_name=nginx --action=reload
+ynh_systemctl --service=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Restoration completed for $app" --last
+ynh_script_progression "Restoration completed for $app"

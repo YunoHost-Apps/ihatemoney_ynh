@@ -5,7 +5,9 @@ EZ editatu eskuz.
 
 # I Hate Money YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/ihatemoney.svg)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/ihatemoney.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/ihatemoney.maintain.svg)
+[![Integrazio maila](https://apps.yunohost.org/badge/integration/ihatemoney)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/)
+![Funtzionamendu egoera](https://apps.yunohost.org/badge/state/ihatemoney)
+![Mantentze egoera](https://apps.yunohost.org/badge/maintained/ihatemoney)
 
 [![Instalatu I Hate Money YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=ihatemoney)
 
@@ -19,14 +21,13 @@ EZ editatu eskuz.
 I hate money is a web application made to ease shared budget management. It keeps track of who bought what, when, and for whom; and helps to settle the bills.
 
 
-**Paketatutako bertsioa:** 6.1.3~ynh1
+**Paketatutako bertsioa:** 6.1.3~ynh2
 
 **Demoa:** <https://ihatemoney.org/demo/>
 
 ## Pantaila-argazkiak
 
-![I Hate Money(r)en pantaila-argazkia](./doc/screenshots/screenshot_1_global.webp)
-![I Hate Money(r)en pantaila-argazkia](./doc/screenshots/screenshot_2_new_operation.webp)
+![I Hate Money(r)en pantaila-argazkia](./doc/screenshots/screenshot.webp)
 
 ## Dokumentazioa eta baliabideak
 
