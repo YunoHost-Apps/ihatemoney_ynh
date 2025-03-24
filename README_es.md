@@ -3,7 +3,7 @@ Este archivo README esta generado automaticamente<https://github.com/YunoHost/ap
 No se debe editar a mano.
 -->
 
-# I Hate Money para Yunohost
+# I Hate Money para YunoHost
 
 [![Nivel de integración](https://apps.yunohost.org/badge/integration/ihatemoney)](https://ci-apps.yunohost.org/ci/apps/ihatemoney/)
 ![Estado funcional](https://apps.yunohost.org/badge/state/ihatemoney)

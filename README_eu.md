@@ -41,7 +41,7 @@ I hate money is a web application made to ease shared budget management. It keep
 
 Bidali `pull request`a [`testing` abarrera](https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing).
 
-`testing` abarra probatzeko, ondorengoa egin:
+`testing` abarra probatzeko, honakoa egin:
 
 ```bash
 sudo yunohost app install https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing --debug
