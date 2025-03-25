@@ -21,7 +21,7 @@ EZ editatu eskuz.
 I hate money is a web application made to ease shared budget management. It keeps track of who bought what, when, and for whom; and helps to settle the bills.
 
 
-**Paketatutako bertsioa:** 6.1.3~ynh2
+**Paketatutako bertsioa:** 6.1.5~ynh1
 
 **Demoa:** <https://ihatemoney.org/demo/>
 
@@ -41,7 +41,7 @@ I hate money is a web application made to ease shared budget management. It keep
 
 Bidali `pull request`a [`testing` abarrera](https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing).
 
-`testing` abarra probatzeko, ondorengoa egin:
+`testing` abarra probatzeko, honakoa egin:
 
 ```bash
 sudo yunohost app install https://github.com/YunoHost-Apps/ihatemoney_ynh/tree/testing --debug
