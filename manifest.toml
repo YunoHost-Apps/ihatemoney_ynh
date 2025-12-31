@@ -19,7 +19,7 @@ admindoc = "https://ihatemoney.readthedocs.org/"
 code = "https://github.com/spiral-project/ihatemoney"
 
 [integration]
-yunohost = ">= 12.0.9"
+yunohost = ">= 12.1.38"
 helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
