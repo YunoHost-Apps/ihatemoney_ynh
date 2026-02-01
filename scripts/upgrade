@@ -82,7 +82,7 @@ fi
 ynh_script_progression "Building venv..."
 
 ynh_safe_rm "$install_dir/venv"
-__ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "${pip_dependencies[*]}"
+__ynh_python_venv_setup --venv_dir="$install_dir/venv" --packages "$(pip_dependencies)"
 python_venv_site_packages=$(__ynh_python_venv_get_site_packages_dir -d "$install_dir/venv")
 
 #=================================================

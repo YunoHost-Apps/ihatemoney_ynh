@@ -4,11 +4,10 @@
 # COMMON VARIABLES AND CUSTOM HELPERS
 #=================================================
 
-pip_dependencies=(
-    'ihatemoney==6.1.3'
-    'gunicorn>=20.0'
-    'PyMySQL>=0.9,<1.1'
-)
+pip_dependencies() {
+    # Not a variable because helper not available at source time
+    echo "ihatemoney[database]==$(ynh_app_upstream_version) gunicorn>=20.0"
+}
 
 wait_gunicorn_start() {
     # line_match isn't enough because ihatemoney may stop if database upgrades
