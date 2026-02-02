@@ -85,8 +85,8 @@ _migrate_mysql() {
     fi
 
     # Remove mysql db if the postgresql db is not empty
-    if ! _psql_is_empty "$db_name"; then
-        ynh_mysql_drop_db "$db_name"
-    fi
+    # if ! _psql_is_empty "$db_name"; then
+    #     ynh_mysql_drop_db "$db_name"
+    # fi
 
 }
