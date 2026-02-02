@@ -58,7 +58,8 @@ _hash_password() {
 
 _psql_is_empty() {
     db_name=$1
-    if [[ "$(ynh_psql_db_shell "$db_name" <<< "\dt" 2>/dev/null | wc -l)" == "0" ]]; then
+    detect_empty="select * from pg_catalog.pg_tables where tableowner != 'postgres';"
+    if [[ "$(ynh_psql_db_shell "$db_name" <<< "$detect_empty" 2>/dev/null | wc -l)" == "0" ]]; then
         return 0
     else
         return 1
