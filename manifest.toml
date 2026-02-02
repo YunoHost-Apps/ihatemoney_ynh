@@ -72,6 +72,9 @@ ram.runtime = "100M"
     [resources.apt]
     packages = [
         "postgresql",
+        # For mysql to postgresql migration
+        "pgloader",
+
         "python3-dev",
         "python3-venv",
         "libffi-dev",

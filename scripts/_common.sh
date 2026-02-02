@@ -75,9 +75,12 @@ _migrate_mysql() {
     if _psql_is_empty "$db_name"; then
         ynh_print_info "Migrating to PostgreSQL database..."
 
-        ynh_mysql_dump_db > ./db.sql
-        ynh_psql_db_shell < ./db.sql
-        rm ./db.sql
+        # ynh_mysql_dump_db > ./db.sql
+        # ynh_psql_db_shell < ./db.sql
+        # rm ./db.sql
+        pgloader \
+            "mysql://${db_user}@localhost/${db_name}" \
+            "postgresql://${db_user}@localhost/${db_name}"
     fi
 
     # Remove mysql db if the postgresql db is not empty
