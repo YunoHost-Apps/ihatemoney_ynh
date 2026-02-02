@@ -79,8 +79,8 @@ _migrate_mysql() {
         # ynh_psql_db_shell < ./db.sql
         # rm ./db.sql
         pgloader \
-            "mysql://${db_user}@localhost/${db_name}" \
-            "postgresql://${db_user}@localhost/${db_name}"
+            "mysql://${db_user}:${db_pwd}@localhost/${db_name}" \
+            "postgresql://${db_user}:${db_pwd}@localhost/${db_name}"
     fi
 
     # Remove mysql db if the postgresql db is not empty
