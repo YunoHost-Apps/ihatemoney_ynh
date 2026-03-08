@@ -54,3 +54,39 @@ _hash_password() {
     password=$1
     python3 -c "$HASH_PASSWORD_PYTHON" "$password"
 }
+
+
+_psql_is_empty() {
+    db_name=$1
+    detect_empty="select * from pg_catalog.pg_tables where tableowner != 'postgres';"
+    if [[ "$(ynh_psql_db_shell "$db_name" <<< "$detect_empty" 2>/dev/null | wc -l)" == "0" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+_migrate_mysql() {
+    # Only migrate if the mysql exists
+    if ! ynh_mysql_database_exists "$db_name"; then
+        return
+    fi
+
+    # Migrate mysql db onto postgresql if the db is empty
+    if _psql_is_empty "$db_name"; then
+        ynh_print_info "Migrating to PostgreSQL database..."
+
+        # ynh_mysql_dump_db > ./db.sql
+        # ynh_psql_db_shell < ./db.sql
+        # rm ./db.sql
+        pgloader \
+            "mysql://${db_user}:${db_pwd}@localhost/${db_name}" \
+            "postgresql://${db_user}:${db_pwd}@localhost/${db_name}"
+    fi
+
+    # Remove mysql db if the postgresql db is not empty
+    # if ! _psql_is_empty "$db_name"; then
+    #     ynh_mysql_drop_db "$db_name"
+    # fi
+
+}

@@ -76,6 +76,9 @@ if [ ! -d "/var/log/$app" ]; then
     chown -R "$app:$app" "/var/log/$app"
 fi
 
+# MIGRATION: From legacy MySQL databases from before 7.0.0
+_migrate_mysql
+
 #=================================================
 # BUILD VENV
 #=================================================
